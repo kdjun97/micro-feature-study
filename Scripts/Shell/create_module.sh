@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 메뉴 옵션
-options=("FeatureModule" "CommonModule" "MicroFeatureModule")
+options=("CommonModule" "MicroFeatureModule")
 
 # 터미널 설정 저장
 stty_orig=$(stty -g)
@@ -112,8 +112,6 @@ if [[ "$selected_option" == "CommonModule" ]]; then
     scaffold_args=("$selected_option" "--name" "$name" "--base-path" "$base_path")
 elif [[ "$selected_option" == "MicroFeatureModule" ]]; then
     scaffold_args=("$selected_option" "--name" "$name" "--base-path" "$base_path" "--has-demo" "$has_demo")
-else
-    scaffold_args=("$selected_option" "--name" "$name")
 fi
 
 if ! "${tuist_command[@]}" scaffold "${scaffold_args[@]}"; then
