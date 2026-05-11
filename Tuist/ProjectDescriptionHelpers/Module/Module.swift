@@ -6,6 +6,9 @@
 //
 
 public enum Module: Hashable {
+    case Main
+    case Root
+    case Domain
     case App
     case DesignSystem
     case External(ExternalModule)
@@ -23,6 +26,8 @@ public enum ExternalModule {
 }
 
 public enum MicroFeatureModule {
+    case Detail
+    case Dashboard
     case SignIn
     
     var name: String {
@@ -44,7 +49,9 @@ public enum MicroFeatureModule {
     
     var path: String {
         switch self {
-        case .SignIn: "Projects/Features/Auth"
+        case .SignIn: "Projects/Feature/SignIn"
+        case .Dashboard: "Projects/Feature/Dashboard"
+        case .Detail: "Projects/Feature/Detail"
         }
     }
 }
