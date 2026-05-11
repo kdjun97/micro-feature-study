@@ -41,10 +41,29 @@ public struct MicroFeatureDependencies {
 public let dependencyInfo: DependencyInfo = DependencyInfo(
     moduleDependencies: [
         .App: [
-            .microFeature(.Auth),
+            .module(.Root)
+        ],
+        .Root: [
+            .module(.Main),
+            .microFeature(.SignIn),
+            .microFeature(.Dashboard)
+        ],
+        .Main: [
+            .microFeature(.Detail)
         ]
     ],
     microFeatureDependencies: [
-        .Auth: .init()
+        .SignIn: .init(
+            interface: [.module(.Domain)],
+            implementation: [.module(.DesignSystem)]
+        ),
+        .Dashboard: .init(
+            interface: [.module(.Domain)],
+            implementation: [.module(.DesignSystem)]
+        ),
+        .Detail: .init(
+            interface: [.module(.Domain)],
+            implementation: [.module(.DesignSystem)]
+        )
     ]
 )
