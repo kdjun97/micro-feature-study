@@ -18,6 +18,7 @@ public final class DIContainer {
         registerDependencies()
         registerSignInDependencies()
         registerDashboardDependencies()
+        registerDetailDependencies()
     }
 
     private func registerDependencies() {
@@ -25,9 +26,6 @@ public final class DIContainer {
             CoreNetworkClient()
         }
 
-        container.register(DetailBuildable.self) { _ in
-            DetailFeature()
-        }
     }
 }
 

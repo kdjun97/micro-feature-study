@@ -64,6 +64,8 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
             implementation: [.microFeature(.CoreNetwork)]
         ),
         .Dashboard: .init(),
-        .Detail: .init()
+        .Detail: .init(
+            implementation: [.microFeature(.CoreNetwork)]
+        )
     ]
 )
