@@ -16,11 +16,16 @@ public struct RootCoordinatorView: View {
     }
 
     public var body: some View {
-        NavigationStack(path: $coordinator.path) {
+        switch coordinator.root {
+        case .signIn:
+            NavigationStack(path: $coordinator.signInPath) {
+                coordinator.makeRootView()
+                    .navigationDestination(for: SignInDestination.self) { destination in
+                        coordinator.makeSignInDestinationView(destination)
+                    }
+            }
+        case .main:
             coordinator.makeRootView()
-                .navigationDestination(for: RootDestination.self) { destination in
-                    coordinator.makeDestinationView(destination)
-                }
         }
     }
 }

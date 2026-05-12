@@ -6,8 +6,11 @@
 //  Copyright © 2026 QCells. All rights reserved.
 //
 
-public enum RootDestination: Equatable {
+public enum RootDestination {
     case signIn
     case main
+}
+
+public enum SignInDestination {
     case dashboard
 }

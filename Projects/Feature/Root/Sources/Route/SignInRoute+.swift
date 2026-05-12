@@ -13,10 +13,10 @@ extension RootCoordinator: SignInRouting {
         switch route {
         case .signInSucceeded:
             mainCoordinator.startDetail()
-            path.removeAll()
+            signInPath.removeAll()
             root = .main
         case .dashboardRequested:
-            path.append(.dashboard)
+            signInPath.append(.dashboard)
         }
     }
 }

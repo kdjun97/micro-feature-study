@@ -12,8 +12,8 @@ extension RootCoordinator: DashboardRouting {
     public func route(from route: DashboardRoute) {
         switch route {
         case .backRequested:
-            if !path.isEmpty {
-                path.removeLast()
+            if !signInPath.isEmpty {
+                signInPath.removeLast()
             }
         }
     }
