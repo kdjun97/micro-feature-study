@@ -17,15 +17,12 @@ public final class DIContainer {
         self.container = container
         registerDependencies()
         registerSignInDependencies()
+        registerDashboardDependencies()
     }
 
     private func registerDependencies() {
         container.register(CoreNetworkProtocol.self) { _ in
             CoreNetworkClient()
-        }
-
-        container.register(DashboardBuildable.self) { _ in
-            DashboardFeature()
         }
 
         container.register(DetailBuildable.self) { _ in

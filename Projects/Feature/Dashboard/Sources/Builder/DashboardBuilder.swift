@@ -2,9 +2,9 @@ import DashboardInterface
 import SwiftUI
 
 public struct DashboardBuilder: DashboardBuildable {
-    private let useCase: DashboardUseCase
+    private let useCase: DashboardUseCaseProtocol
 
-    public init(useCase: DashboardUseCase) {
+    public init(useCase: DashboardUseCaseProtocol) {
         self.useCase = useCase
     }
 

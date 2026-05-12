@@ -4,11 +4,13 @@ import DashboardTesting
 
 @main
 struct DashboardDemoApp: App {
+    private let useCase: DashboardUseCaseProtocol
     private let viewModel: DashboardViewModel
 
     init() {
+        self.useCase = MockDashboardUseCase()
         self.viewModel = DashboardViewModel(
-            useCase: MockDashboardUseCase(),
+            useCase: useCase,
             router: MockDashboardRouter()
         )
     }

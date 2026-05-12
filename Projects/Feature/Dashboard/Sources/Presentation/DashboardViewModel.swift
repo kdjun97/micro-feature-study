@@ -5,11 +5,11 @@ import DashboardInterface
 public final class DashboardViewModel: ObservableObject {
     @Published public private(set) var title: String
 
-    private let useCase: DashboardUseCase
+    private let useCase: DashboardUseCaseProtocol
     private weak var router: DashboardRouting?
 
     public init(
-        useCase: DashboardUseCase,
+        useCase: DashboardUseCaseProtocol,
         router: DashboardRouting
     ) {
         self.useCase = useCase

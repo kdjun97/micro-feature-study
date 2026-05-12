@@ -6,7 +6,7 @@ public struct DashboardTesting {
     public init() {}
 }
 
-public struct MockDashboardUseCase: DashboardUseCase {
+public struct MockDashboardUseCase: DashboardUseCaseProtocol {
     private let stubbedTitle: String
 
     public init(title: String = "Mock Dashboard") {

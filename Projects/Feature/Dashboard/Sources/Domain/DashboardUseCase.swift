@@ -1,8 +1,10 @@
-public protocol DashboardUseCase {
+import DashboardInterface
+
+public protocol DashboardUseCaseProtocol {
     func title() -> String
 }
 
-public struct DefaultDashboardUseCase: DashboardUseCase {
+public struct DashboardUseCase: DashboardUseCaseProtocol {
     public init() {}
 
     public func title() -> String {
