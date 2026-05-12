@@ -16,6 +16,11 @@ public struct RootCoordinatorView: View {
     }
 
     public var body: some View {
-        coordinator.makeRootView()
+        NavigationStack(path: $coordinator.path) {
+            coordinator.makeRootView()
+                .navigationDestination(for: RootDestination.self) { destination in
+                    coordinator.makeDestinationView(destination)
+                }
+        }
     }
 }

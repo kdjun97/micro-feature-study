@@ -5,7 +5,8 @@ import SwiftUI
 
 @MainActor
 public final class RootCoordinator: ObservableObject {
-    @Published public var destination: RootDestination = .signIn
+    @Published public var root: RootDestination = .signIn
+    @Published public var path: [RootDestination] = []
 
     private let signInBuilder: SignInBuildable
     private let dashboardBuilder: DashboardBuildable
@@ -23,13 +24,24 @@ public final class RootCoordinator: ObservableObject {
     }
 
     public func makeRootView() -> AnyView {
+        switch root {
+        case .signIn:
+            signInBuilder.makeSignInView(router: self)
+        case .main:
+            AnyView(MainCoordinatorView(coordinator: mainCoordinator))
+        default:
+            AnyView(EmptyView())
+        }
+    }
+
+    public func makeDestinationView(_ destination: RootDestination) -> AnyView {
         switch destination {
         case .signIn:
             signInBuilder.makeSignInView(router: self)
         case .main:
             AnyView(MainCoordinatorView(coordinator: mainCoordinator))
         case .dashboard:
-            dashboardBuilder.makeDashboardView()
+            dashboardBuilder.makeDashboardView(router: self)
         }
     }
 }

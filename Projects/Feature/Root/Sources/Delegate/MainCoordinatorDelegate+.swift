@@ -14,6 +14,6 @@ extension RootCoordinator: @MainActor MainCoordinatorDelegate {
     }
     
     private func moveToSignIn() {
-        destination = .signIn
+        root = .signIn
     }
 }
