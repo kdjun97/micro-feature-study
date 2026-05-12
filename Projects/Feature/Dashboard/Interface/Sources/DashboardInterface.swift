@@ -13,3 +13,7 @@ public protocol DashboardBuildable {
     @MainActor
     func makeDashboardView(router: DashboardRouting) -> AnyView
 }
+
+public protocol DashboardUseCaseProtocol {
+    func title() -> String
+}

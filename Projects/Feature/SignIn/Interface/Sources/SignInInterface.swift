@@ -14,3 +14,7 @@ public protocol SignInBuildable {
     @MainActor
     func makeSignInView(router: SignInRouting) -> AnyView
 }
+
+public protocol SignInUseCaseProtocol {
+    func signIn() async -> Bool
+}

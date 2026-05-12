@@ -1,6 +1,7 @@
 import SwiftUI
 import Dashboard
 import DashboardTesting
+import DashboardInterface
 
 @main
 struct DashboardDemoApp: App {

@@ -1,6 +1,7 @@
 import SwiftUI
 import Detail
 import DetailTesting
+import DetailInterface
 
 @main
 struct DetailDemoApp: App {
@@ -8,7 +9,7 @@ struct DetailDemoApp: App {
     private let viewModel: DetailViewModel
 
     init() {
-        self.useCase = MockDetailUseCase.success()
+        self.useCase = MockDetailUseCase.failure()
         self.viewModel = DetailViewModel(
             useCase: useCase,
             router: MockDetailRouter()

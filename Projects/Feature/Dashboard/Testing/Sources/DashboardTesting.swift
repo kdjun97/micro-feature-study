@@ -1,5 +1,4 @@
 import DashboardInterface
-import Dashboard
 import SwiftUI
 
 public struct DashboardTesting {
@@ -7,14 +6,10 @@ public struct DashboardTesting {
 }
 
 public struct MockDashboardUseCase: DashboardUseCaseProtocol {
-    private let stubbedTitle: String
-
-    public init(title: String = "Mock Dashboard") {
-        self.stubbedTitle = title
-    }
-
+    public init() {}
+    
     public func title() -> String {
-        stubbedTitle
+        "Mock"
     }
 }
 

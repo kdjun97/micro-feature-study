@@ -1,6 +1,7 @@
 import SwiftUI
 import SignIn
 import SignInTesting
+import SignInInterface
 
 @main
 struct SignInDemoApp: App {

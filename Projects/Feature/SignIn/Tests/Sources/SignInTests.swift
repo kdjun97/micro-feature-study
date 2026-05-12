@@ -1,6 +1,5 @@
 import XCTest
 import CoreNetworkInterface
-import CoreNetworkTesting
 @testable import SignIn
 import SignInInterface
 import SignInTesting
@@ -116,4 +115,16 @@ final class SignInRepositoryTests: XCTestCase {
 
 private enum SignInTestError: Error {
     case failed
+}
+
+struct MockSignInRepository: SignInRepositoryProtocol {
+    private let result: Result<Bool, Error>
+    
+    public init(result: Result<Bool, Error> = .success(true)) {
+        self.result = result
+    }
+
+    public func signIn() async throws -> Bool {
+        return try result.get()
+    }
 }

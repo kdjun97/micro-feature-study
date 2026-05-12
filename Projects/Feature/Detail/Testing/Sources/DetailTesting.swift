@@ -50,18 +50,3 @@ public final class MockDetailRouter: DetailRouting {
         routes.append(route)
     }
 }
-
-public final class MockDetailBuilder: DetailBuildable {
-    public private(set) var receivedRouter: (any DetailRouting)?
-    private let view: AnyView
-
-    public init(view: AnyView = AnyView(EmptyView())) {
-        self.view = view
-    }
-
-    @MainActor
-    public func makeDetailView(router: any DetailRouting) -> AnyView {
-        receivedRouter = router
-        return view
-    }
-}

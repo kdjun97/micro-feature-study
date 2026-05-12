@@ -1,10 +1,5 @@
 import DetailInterface
 
-public protocol DetailUseCaseProtocol {
-    func title() -> String
-    func logout() async -> Bool
-}
-
 public struct DetailUseCase: DetailUseCaseProtocol {
     private let repository: DetailRepositoryProtocol
 

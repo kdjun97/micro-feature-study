@@ -13,3 +13,8 @@ public protocol DetailBuildable {
     @MainActor
     func makeDetailView(router: DetailRouting) -> AnyView
 }
+
+public protocol DetailUseCaseProtocol {
+    func title() -> String
+    func logout() async -> Bool
+}

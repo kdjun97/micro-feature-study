@@ -1,5 +1,4 @@
 import SignInInterface
-import SignIn
 
 public struct SignInTesting {
     public init() {}
@@ -23,18 +22,6 @@ public struct MockSignInUseCase: SignInUseCaseProtocol {
     public func signIn() async -> Bool {
         try? await Task.sleep(nanoseconds: 1_000_000_000)
         return result
-    }
-}
-
-public final class MockSignInRepository: SignInRepositoryProtocol {
-    private let result: Result<Bool, Error>
-    
-    public init(result: Result<Bool, Error> = .success(true)) {
-        self.result = result
-    }
-
-    public func signIn() async throws -> Bool {
-        return try result.get()
     }
 }
 

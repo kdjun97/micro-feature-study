@@ -1,6 +1,4 @@
-public protocol SignInUseCaseProtocol {
-    func signIn() async -> Bool
-}
+import SignInInterface
 
 public struct SignInUseCase: SignInUseCaseProtocol {
     private let repository: SignInRepositoryProtocol
