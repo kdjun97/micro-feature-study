@@ -29,6 +29,7 @@ public enum MicroFeatureModule {
     case Detail
     case Dashboard
     case SignIn
+    case CoreNetwork
     
     var name: String {
         switch self {
@@ -52,6 +53,7 @@ public enum MicroFeatureModule {
         case .SignIn: "Projects/Feature/SignIn"
         case .Dashboard: "Projects/Feature/Dashboard"
         case .Detail: "Projects/Feature/Detail"
+        case .CoreNetwork: "Projects/Core/CoreNetwork"
         }
     }
 }
