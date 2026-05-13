@@ -44,7 +44,9 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
             .module(.Root),
             .module(.Main),
             .microFeature(.CoreNetwork),
+            .microFeature(.CoreAuth),
             .module(.MicroFeature(.CoreNetwork)),
+            .module(.MicroFeature(.CoreAuth)),
             .module(.MicroFeature(.SignIn)),
             .module(.MicroFeature(.Dashboard)),
             .module(.MicroFeature(.Detail)),
@@ -61,11 +63,26 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
     ],
     microFeatureDependencies: [
         .SignIn: .init(
-            implementation: [.microFeature(.CoreNetwork)]
+            implementation: [
+                .microFeature(.CoreNetwork),
+                .microFeature(.CoreAuth)
+            ],
+            demo: [.microFeature(.CoreAuth)]
         ),
         .Dashboard: .init(),
         .Detail: .init(
-            implementation: [.microFeature(.CoreNetwork)]
+            implementation: [
+                .microFeature(.CoreNetwork),
+                .microFeature(.CoreAuth)
+            ]
+        ),
+        .CoreAuth: .init(
+            interface: [.module(.Domain)],
+            implementation: [
+                .module(.Domain),
+                .microFeature(.CoreNetwork)
+            ],
+            testing: [.module(.Domain)]
         )
     ]
 )

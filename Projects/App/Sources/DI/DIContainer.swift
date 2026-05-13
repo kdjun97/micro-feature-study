@@ -2,11 +2,8 @@ import Main
 import Root
 import CoreNetwork
 import CoreNetworkInterface
-import Dashboard
 import DashboardInterface
-import Detail
 import DetailInterface
-import SignIn
 import SignInInterface
 import Swinject
 
@@ -16,6 +13,7 @@ public final class DIContainer {
     public init(container: Container = Container()) {
         self.container = container
         registerDependencies()
+        registerCoreAuthDependencies()
         registerSignInDependencies()
         registerDashboardDependencies()
         registerDetailDependencies()
@@ -25,7 +23,6 @@ public final class DIContainer {
         container.register(CoreNetworkProtocol.self) { _ in
             CoreNetworkClient()
         }
-
     }
 }
 
