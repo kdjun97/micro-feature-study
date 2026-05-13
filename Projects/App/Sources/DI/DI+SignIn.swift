@@ -7,6 +7,7 @@
 //
 
 import SignIn
+import CoreAuthInterface
 import CoreNetworkInterface
 import SignInInterface
 
@@ -27,7 +28,8 @@ extension DIContainer {
 
         container.register(SignInBuildable.self) { resolver in
             SignInBuilder(
-                useCase: resolver.resolve(SignInUseCaseProtocol.self)!
+                useCase: resolver.resolve(SignInUseCaseProtocol.self)!,
+                coreAuthUseCase: resolver.resolve(CoreAuthInterface.self)!
             )
         }
     }

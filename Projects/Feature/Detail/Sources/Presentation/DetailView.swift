@@ -13,6 +13,7 @@ public struct DetailView: View {
                 .font(.title)
 
             Text(viewModel.logoutMessage)
+            Text(viewModel.userProfileMessage)
 
             if viewModel.isLoading {
                 ProgressView()

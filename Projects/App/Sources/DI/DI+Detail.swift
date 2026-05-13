@@ -6,6 +6,7 @@
 //  Copyright © 2026 QCells. All rights reserved.
 //
 
+import CoreAuthInterface
 import CoreNetworkInterface
 import Detail
 import DetailInterface
@@ -30,7 +31,10 @@ extension DIContainer {
                 fatalError("DetailUseCaseProtocol dependencies are not registered.")
             }
 
-            return DetailBuilder(useCase: useCase)
+            return DetailBuilder(
+                useCase: useCase,
+                coreAuthUseCase: resolver.resolve(CoreAuthInterface.self)!
+            )
         }
     }
 }

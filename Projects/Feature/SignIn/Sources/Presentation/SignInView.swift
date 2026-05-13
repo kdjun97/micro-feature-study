@@ -12,6 +12,7 @@ public struct SignInView: View {
             Text("SignIn")
                 .font(.title)
             Text(viewModel.errorMessage)
+            Text(viewModel.userProfileMessage)
             if viewModel.isLoading {
                 ProgressView()
             }
