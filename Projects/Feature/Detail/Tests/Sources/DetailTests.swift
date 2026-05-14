@@ -1,6 +1,7 @@
 import XCTest
 import CoreAuthTesting
 import CoreNetworkInterface
+import CoreNetworkTesting
 @testable import Detail
 import DetailInterface
 import DetailTesting
@@ -95,7 +96,7 @@ final class DetailUseCaseTests: XCTestCase {
 
 final class DetailRepositoryTests: XCTestCase {
     func testLogoutRequestsLogoutEndpointAndReturnsNetworkSuccess() async throws {
-        let networkClient = StubDetailNetworkClient(
+        let networkClient = StubCoreNetworkClient(
             response: CoreNetworkResponse(isSuccess: true)
         )
         let repository = DetailRepository(networkClient: networkClient)
@@ -128,19 +129,5 @@ private final class MockDetailRepository: DetailRepositoryProtocol {
 
     func logout() async throws -> Bool {
         try result.get()
-    }
-}
-
-private final class StubDetailNetworkClient: CoreNetworkProtocol {
-    private let result: Result<CoreNetworkResponse, Error>
-    private(set) var receivedEndpoints: [CoreNetworkEndpoint] = []
-
-    init(response: CoreNetworkResponse) {
-        self.result = .success(response)
-    }
-
-    func request(_ endpoint: CoreNetworkEndpoint) async throws -> CoreNetworkResponse {
-        receivedEndpoints.append(endpoint)
-        return try result.get()
     }
 }

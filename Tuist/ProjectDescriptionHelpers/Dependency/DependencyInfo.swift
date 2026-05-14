@@ -68,6 +68,10 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
                 .microFeature(.CoreNetwork),
                 .microFeature(.CoreAuth)
             ],
+            tests: [
+                .microFeatureTesting(.CoreNetwork),
+                .microFeatureTesting(.CoreAuth)
+            ],
             demo: [.microFeatureTesting(.CoreAuth)]
         ),
         .Dashboard: .init(),
@@ -75,6 +79,10 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
             implementation: [
                 .microFeature(.CoreNetwork),
                 .microFeature(.CoreAuth)
+            ],
+            tests: [
+                .microFeatureTesting(.CoreNetwork),
+                .microFeatureTesting(.CoreAuth)
             ],
             demo: [.microFeatureTesting(.CoreAuth)]
         ),
