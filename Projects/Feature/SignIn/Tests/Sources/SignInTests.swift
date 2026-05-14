@@ -1,4 +1,5 @@
 import XCTest
+import CoreAuthTesting
 import CoreNetworkInterface
 @testable import SignIn
 import SignInInterface
@@ -11,11 +12,13 @@ final class SignInViewModelTests: XCTestCase {
         let router = MockSignInRouter()
         let viewModel = SignInViewModel(
             useCase: useCase,
+            coreAuthUseCase: MockCoreAuthUseCase.success(),
             router: router
         )
 
         XCTAssertFalse(viewModel.isLoading)
         XCTAssertEqual(viewModel.errorMessage, "상태: 노말")
+        XCTAssertEqual(viewModel.userProfileMessage, "유저: 없음")
     }
 
     func testSignInButtonShowsLoadingAndRoutesToSuccessWhenUseCaseSucceeds() async {
@@ -23,6 +26,7 @@ final class SignInViewModelTests: XCTestCase {
         let router = MockSignInRouter()
         let viewModel = SignInViewModel(
             useCase: useCase,
+            coreAuthUseCase: MockCoreAuthUseCase.success(),
             router: router
         )
 
@@ -39,6 +43,7 @@ final class SignInViewModelTests: XCTestCase {
 
         XCTAssertFalse(viewModel.isLoading)
         XCTAssertEqual(viewModel.errorMessage, "상태: 노말")
+        XCTAssertEqual(viewModel.userProfileMessage, "유저: Jumy")
         XCTAssertEqual(router.routes, [.signInSucceeded])
     }
 
@@ -47,6 +52,7 @@ final class SignInViewModelTests: XCTestCase {
         let router = MockSignInRouter()
         let viewModel = SignInViewModel(
             useCase: useCase,
+            coreAuthUseCase: MockCoreAuthUseCase.success(),
             router: router
         )
 
@@ -62,6 +68,7 @@ final class SignInViewModelTests: XCTestCase {
         let router = MockSignInRouter()
         let viewModel = SignInViewModel(
             useCase: useCase,
+            coreAuthUseCase: MockCoreAuthUseCase.success(),
             router: router
         )
 
@@ -119,7 +126,7 @@ private enum SignInTestError: Error {
 
 struct MockSignInRepository: SignInRepositoryProtocol {
     private let result: Result<Bool, Error>
-    
+
     public init(result: Result<Bool, Error> = .success(true)) {
         self.result = result
     }

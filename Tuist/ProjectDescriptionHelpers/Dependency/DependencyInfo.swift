@@ -13,7 +13,8 @@ public struct DependencyInfo: @unchecked Sendable {
 public enum Dependency {
     case module(Module)
     case external(ExternalModule)
-    case microFeature(MicroFeatureModule)
+    case microFeature(MicroFeatureModule) // Interface
+    case microFeatureTesting(MicroFeatureModule) // Testing
 }
 
 public struct MicroFeatureDependencies {
@@ -67,14 +68,15 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
                 .microFeature(.CoreNetwork),
                 .microFeature(.CoreAuth)
             ],
-            demo: [.microFeature(.CoreAuth)]
+            demo: [.microFeatureTesting(.CoreAuth)]
         ),
         .Dashboard: .init(),
         .Detail: .init(
             implementation: [
                 .microFeature(.CoreNetwork),
                 .microFeature(.CoreAuth)
-            ]
+            ],
+            demo: [.microFeatureTesting(.CoreAuth)]
         ),
         .CoreAuth: .init(
             interface: [.module(.Domain)],

@@ -32,12 +32,21 @@ extension TargetDependency {
             return .external(name: module.name)
         case .microFeature(let module):
             return .microFeatureInterface(module)
+        case .microFeatureTesting(let module):
+            return .microFeatureTesting(module)
         }
     }
     
     static func microFeatureInterface(_ module: MicroFeatureModule) -> TargetDependency {
         .project(
             target: module.interfaceName,
+            path: .relativeToRoot(module.path)
+        )
+    }
+
+    static func microFeatureTesting(_ module: MicroFeatureModule) -> TargetDependency {
+        .project(
+            target: module.testingName,
             path: .relativeToRoot(module.path)
         )
     }

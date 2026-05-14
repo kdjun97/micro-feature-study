@@ -1,4 +1,5 @@
 import XCTest
+import CoreAuthTesting
 import CoreNetworkInterface
 @testable import Detail
 import DetailInterface
@@ -12,12 +13,14 @@ final class DetailViewModelTests: XCTestCase {
 
         let viewModel = DetailViewModel(
             useCase: useCase,
+            coreAuthUseCase: MockCoreAuthUseCase.success(),
             router: router
         )
 
         XCTAssertEqual(useCase.titleCallCount, 1)
         XCTAssertEqual(viewModel.title, "Mock Detail")
         XCTAssertEqual(viewModel.logoutMessage, "상태: 노말")
+        XCTAssertEqual(viewModel.userProfileMessage, "유저: 없음")
         XCTAssertFalse(viewModel.isLoading)
         XCTAssertFalse(viewModel.isLogoutFailedAlertPresented)
         XCTAssertEqual(router.routes, [])
@@ -28,6 +31,7 @@ final class DetailViewModelTests: XCTestCase {
         let router = MockDetailRouter()
         let viewModel = DetailViewModel(
             useCase: useCase,
+            coreAuthUseCase: MockCoreAuthUseCase.success(),
             router: router
         )
 
@@ -45,6 +49,7 @@ final class DetailViewModelTests: XCTestCase {
         XCTAssertEqual(useCase.logoutCallCount, 1)
         XCTAssertFalse(viewModel.isLoading)
         XCTAssertEqual(viewModel.logoutMessage, "상태: 노말")
+        XCTAssertEqual(viewModel.userProfileMessage, "유저: Jumy")
         XCTAssertFalse(viewModel.isLogoutFailedAlertPresented)
         XCTAssertEqual(router.routes, [.logout])
     }
@@ -54,6 +59,7 @@ final class DetailViewModelTests: XCTestCase {
         let router = MockDetailRouter()
         let viewModel = DetailViewModel(
             useCase: useCase,
+            coreAuthUseCase: MockCoreAuthUseCase.success(),
             router: router
         )
 
