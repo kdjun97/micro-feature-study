@@ -6,7 +6,7 @@ import DashboardTesting
 @MainActor
 final class DashboardViewModelTests: XCTestCase {
     func testInitialTitleUsesUseCaseTitle() {
-        let useCase = MockDashboardUseCase(title: "Mock Dashboard")
+        let useCase = MockDashboardUseCase()
         let router = MockDashboardRouter()
 
         let viewModel = DashboardViewModel(

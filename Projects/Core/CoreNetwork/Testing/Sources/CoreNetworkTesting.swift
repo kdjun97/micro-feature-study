@@ -2,13 +2,14 @@ import CoreNetworkInterface
 
 public enum CoreNetworkTestingError: Error {
     case failed
+    case responseTypeMismatch
 }
 
 public final class StubCoreNetworkClient: CoreNetworkProtocol {
     public private(set) var receivedEndpoints: [CoreNetworkEndpoint] = []
-    public var result: Result<CoreNetworkResponse, Error>
+    public var result: Result<Any, Error>
 
-    public init(response: CoreNetworkResponse = CoreNetworkResponse(isSuccess: true)) {
+    public init<Response: Decodable>(response: Response) {
         self.result = .success(response)
     }
 
@@ -16,8 +17,15 @@ public final class StubCoreNetworkClient: CoreNetworkProtocol {
         self.result = .failure(error)
     }
 
-    public func request(_ endpoint: CoreNetworkEndpoint) async throws -> CoreNetworkResponse {
+    public func request<Response: Decodable>(_ endpoint: CoreNetworkEndpoint) async throws -> Response {
         receivedEndpoints.append(endpoint)
-        return try result.get()
+
+        let value = try result.get()
+
+        guard let response = value as? Response else {
+            throw CoreNetworkTestingError.responseTypeMismatch
+        }
+
+        return response
     }
 }

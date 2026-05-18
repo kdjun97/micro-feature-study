@@ -17,18 +17,25 @@ public struct CoreAuthRepository: CoreAuthRepositoryProtocol {
     }
 
     public func getUserProfile() async throws -> UserProfile {
-        do {
-            let response = try await networkClient.request(
-                CoreNetworkEndpoint(
-                    path: "/profile",
-                    method: "GET"
-                )
+        let response: UserProfileResponseDTO = try await networkClient.request(
+            CoreNetworkEndpoint(
+                path: "/profile",
+                method: "GET"
             )
+        )
 
-            // TODO: Mapper 구현 + CoreNetwork Generic 구현 필요 / 일단 지금은 검증만
-            return .init(id: "2", name: "s", age: 1, email: ":D")
-        } catch {
-            throw error
-        }
+        return UserProfile(
+            id: response.id,
+            name: response.name,
+            age: response.age,
+            email: response.email
+        )
     }
+}
+
+private struct UserProfileResponseDTO: Decodable {
+    let id: String
+    let name: String
+    let age: Int
+    let email: String
 }

@@ -97,7 +97,7 @@ final class DetailUseCaseTests: XCTestCase {
 final class DetailRepositoryTests: XCTestCase {
     func testLogoutRequestsLogoutEndpointAndReturnsNetworkSuccess() async throws {
         let networkClient = StubCoreNetworkClient(
-            response: CoreNetworkResponse(isSuccess: true)
+            response: DetailResponseDTO(isSuccess: true)
         )
         let repository = DetailRepository(networkClient: networkClient)
 

@@ -6,10 +6,14 @@ public struct DashboardTesting {
 }
 
 public struct MockDashboardUseCase: DashboardUseCaseProtocol {
-    public init() {}
-    
+    private let stubTitle: String
+
+    public init(title: String = "Mock Dashboard") {
+        self.stubTitle = title
+    }
+
     public func title() -> String {
-        "Mock"
+        stubTitle
     }
 }
 

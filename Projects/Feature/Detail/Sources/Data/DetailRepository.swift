@@ -8,7 +8,7 @@ public struct DetailRepository: DetailRepositoryProtocol {
     }
 
     public func logout() async throws -> Bool {
-        let response = try await networkClient.request(
+        let response: DetailResponseDTO = try await networkClient.request(
             CoreNetworkEndpoint(
                 path: "/logout",
                 method: "POST"
@@ -17,4 +17,8 @@ public struct DetailRepository: DetailRepositoryProtocol {
 
         return response.isSuccess
     }
+}
+
+struct DetailResponseDTO: Decodable, Equatable {
+    let isSuccess: Bool
 }

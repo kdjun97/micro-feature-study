@@ -8,7 +8,7 @@ public struct SignInRepository: SignInRepositoryProtocol {
     }
 
     public func signIn() async throws -> Bool {
-        let response = try await networkClient.request(
+        let response: SignInResponseDTO = try await networkClient.request(
             CoreNetworkEndpoint(
                 path: "/sign-in",
                 method: "POST"
@@ -17,4 +17,8 @@ public struct SignInRepository: SignInRepositoryProtocol {
 
         return response.isSuccess
     }
+}
+
+struct SignInResponseDTO: Decodable, Equatable {
+    let isSuccess: Bool
 }

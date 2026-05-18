@@ -102,7 +102,7 @@ final class SignInUseCaseTests: XCTestCase {
 final class SignInRepositoryTests: XCTestCase {
     func testSignInRequestsSignInEndpointAndReturnsNetworkSuccess() async throws {
         let networkClient = StubCoreNetworkClient(
-            response: CoreNetworkResponse(isSuccess: true)
+            response: SignInResponseDTO(isSuccess: true)
         )
         let repository = SignInRepository(networkClient: networkClient)
 

@@ -11,14 +11,6 @@ public struct CoreNetworkEndpoint: Equatable {
     }
 }
 
-public struct CoreNetworkResponse: Equatable {
-    public let isSuccess: Bool
-
-    public init(isSuccess: Bool) {
-        self.isSuccess = isSuccess
-    }
-}
-
 public protocol CoreNetworkProtocol {
-    func request(_ endpoint: CoreNetworkEndpoint) async throws -> CoreNetworkResponse
+    func request<Response: Decodable>(_ endpoint: CoreNetworkEndpoint) async throws -> Response
 }
