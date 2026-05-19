@@ -26,7 +26,8 @@ public let projectEnvironment = ProjectEnvironment(
     baseSetting: [
         "OTHER_LDFLAGS": ["$(inherited) -Objc"],
         "DEBUG_INFORMATION_FORMAT": "dwarf-with-dsym",
-        "OTHER_SWIFT_FLAGS": ["$(inherited)", "-enable-actor-data-race-checks"]
+        "OTHER_SWIFT_FLAGS": ["$(inherited)", "-enable-actor-data-race-checks"],
+        "ENABLE_TESTABILITY": "YES"
     ],
     defaultSettings: DefaultSettings.recommended(excluding: [
         "SWIFT_ACTIVE_COMPILATION_CONDITIONS"

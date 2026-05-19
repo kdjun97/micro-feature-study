@@ -13,7 +13,8 @@ public struct DependencyInfo: @unchecked Sendable {
 public enum Dependency {
     case module(Module)
     case external(ExternalModule)
-    case microFeature(MicroFeatureModule)
+    case microFeature(MicroFeatureModule) // Interface
+    case microFeatureTesting(MicroFeatureModule) // Testing
 }
 
 public struct MicroFeatureDependencies {
@@ -41,7 +42,19 @@ public struct MicroFeatureDependencies {
 public let dependencyInfo: DependencyInfo = DependencyInfo(
     moduleDependencies: [
         .App: [
-            .module(.Root)
+            .module(.Root),
+            .module(.Main),
+            .microFeature(.CoreNetwork),
+            .microFeature(.CoreAuth),
+            .microFeature(.CoreKeyChainStorage),
+            .module(.MicroFeature(.CoreNetwork)),
+            .module(.MicroFeature(.CoreAuth)),
+            .module(.MicroFeature(.CoreKeyChainStorage)),
+            .module(.MicroFeature(.SignIn)),
+            .module(.MicroFeature(.Dashboard)),
+            .module(.MicroFeature(.Detail)),
+            .external(.Alamofire),
+            .external(.Swinject)
         ],
         .Root: [
             .module(.Main),
@@ -54,16 +67,40 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
     ],
     microFeatureDependencies: [
         .SignIn: .init(
-            interface: [.module(.Domain)],
-            implementation: [.module(.DesignSystem)]
+            implementation: [
+                .microFeature(.CoreNetwork),
+                .microFeature(.CoreAuth)
+            ],
+            tests: [
+                .microFeatureTesting(.CoreNetwork),
+                .microFeatureTesting(.CoreAuth)
+            ],
+            demo: [.microFeatureTesting(.CoreAuth)]
         ),
-        .Dashboard: .init(
-            interface: [.module(.Domain)],
-            implementation: [.module(.DesignSystem)]
-        ),
+        .Dashboard: .init(),
         .Detail: .init(
+            implementation: [
+                .microFeature(.CoreNetwork),
+                .microFeature(.CoreAuth)
+            ],
+            tests: [
+                .microFeatureTesting(.CoreNetwork),
+                .microFeatureTesting(.CoreAuth)
+            ],
+            demo: [.microFeatureTesting(.CoreAuth)]
+        ),
+        .CoreAuth: .init(
             interface: [.module(.Domain)],
-            implementation: [.module(.DesignSystem)]
+            implementation: [
+                .module(.Domain),
+                .microFeature(.CoreNetwork)
+            ],
+            testing: [.module(.Domain)]
+        ),
+        .CoreNetwork: .init(
+            implementation: [
+                .external(.Alamofire)
+            ]
         )
     ]
 )
