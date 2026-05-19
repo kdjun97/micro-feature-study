@@ -12,17 +12,12 @@ public final class DIContainer {
 
     public init(container: Container = Container()) {
         self.container = container
-        registerDependencies()
+        registerKeyChainStorageDependencies()
+        registerCoreNetworkDependencies()
         registerCoreAuthDependencies()
         registerSignInDependencies()
         registerDashboardDependencies()
         registerDetailDependencies()
-    }
-
-    private func registerDependencies() {
-        container.register(CoreNetworkProtocol.self) { _ in
-            CoreNetworkClient()
-        }
     }
 }
 

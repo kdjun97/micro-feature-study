@@ -5,14 +5,14 @@ import Foundation
 final class CoreNetworkTokenRefresher: Sendable {
     private let baseURL: URL
     private let refreshTokenEndpoint: CoreNetworkEndpoint
-    private let tokenStore: CoreNetworkTokenStore
+    private let tokenStore: CoreTokenStorage
     private let session: Session
     private let decoder: JSONDecoder
 
     init(
         baseURL: URL,
         refreshTokenEndpoint: CoreNetworkEndpoint,
-        tokenStore: CoreNetworkTokenStore,
+        tokenStore: CoreTokenStorage,
         decoder: JSONDecoder
     ) {
         self.baseURL = baseURL

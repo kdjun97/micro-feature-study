@@ -11,7 +11,7 @@ public final class CoreNetworkClient: CoreNetworkProtocol {
     let reachabilityManager: NetworkReachabilityManager?
 
     public init(
-        tokenStore: CoreNetworkTokenStore? = nil,
+        tokenStore: CoreTokenStorage? = nil,
         refreshTokenEndpoint: CoreNetworkEndpoint? = nil,
         defaultHeaders: [String: String] = [:],
         decoder: JSONDecoder = JSONDecoder()
@@ -55,7 +55,7 @@ public final class CoreNetworkClient: CoreNetworkProtocol {
 private extension CoreNetworkClient {
     static func makeTokenRefresher(
         baseURL: URL,
-        tokenStore: CoreNetworkTokenStore?,
+        tokenStore: CoreTokenStorage?,
         refreshTokenEndpoint: CoreNetworkEndpoint?,
         decoder: JSONDecoder
     ) -> CoreNetworkTokenRefresher? {
@@ -72,7 +72,7 @@ private extension CoreNetworkClient {
     }
 
     static func makeRequestInterceptor(
-        tokenStore: CoreNetworkTokenStore?,
+        tokenStore: CoreTokenStorage?,
         tokenRefresher: CoreNetworkTokenRefresher?,
         defaultHeaders: [String: String]
     ) -> CoreNetworkRequestInterceptor {

@@ -3,12 +3,12 @@ import CoreNetworkInterface
 import Foundation
 
 final class CoreNetworkRequestInterceptor: RequestInterceptor {
-    private let tokenStore: CoreNetworkTokenStore?
+    private let tokenStore: CoreTokenStorage?
     private let tokenRefresher: CoreNetworkTokenRefresher?
     private let defaultHeaders: [String: String]
 
     init(
-        tokenStore: CoreNetworkTokenStore?,
+        tokenStore: CoreTokenStorage?,
         tokenRefresher: CoreNetworkTokenRefresher?,
         defaultHeaders: [String: String]
     ) {
