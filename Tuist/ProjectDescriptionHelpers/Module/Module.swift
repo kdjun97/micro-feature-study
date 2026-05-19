@@ -16,6 +16,7 @@ public enum Module: Hashable {
 }
 
 public enum ExternalModule {
+    case Alamofire
     case Swinject
     
     var name: String {

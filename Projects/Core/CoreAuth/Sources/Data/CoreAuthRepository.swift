@@ -19,8 +19,8 @@ public struct CoreAuthRepository: CoreAuthRepositoryProtocol {
     public func getUserProfile() async throws -> UserProfile {
         let response: UserProfileResponseDTO = try await networkClient.request(
             CoreNetworkEndpoint(
-                path: "/profile",
-                method: "GET"
+                path: .profile,
+                method: .GET
             )
         )
 

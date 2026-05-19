@@ -108,8 +108,8 @@ final class DetailRepositoryTests: XCTestCase {
             networkClient.receivedEndpoints,
             [
                 CoreNetworkEndpoint(
-                    path: "/logout",
-                    method: "POST"
+                    path: .logout,
+                    method: .POST
                 )
             ]
         )

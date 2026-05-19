@@ -113,8 +113,9 @@ final class SignInRepositoryTests: XCTestCase {
             networkClient.receivedEndpoints,
             [
                 CoreNetworkEndpoint(
-                    path: "/sign-in",
-                    method: "POST"
+                    path: .signIn,
+                    method: .POST,
+                    requiresAuthorization: false
                 )
             ]
         )

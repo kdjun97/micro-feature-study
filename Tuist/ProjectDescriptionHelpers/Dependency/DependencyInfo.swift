@@ -51,6 +51,7 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
             .module(.MicroFeature(.SignIn)),
             .module(.MicroFeature(.Dashboard)),
             .module(.MicroFeature(.Detail)),
+            .external(.Alamofire),
             .external(.Swinject)
         ],
         .Root: [
@@ -93,6 +94,11 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
                 .microFeature(.CoreNetwork)
             ],
             testing: [.module(.Domain)]
+        ),
+        .CoreNetwork: .init(
+            implementation: [
+                .external(.Alamofire)
+            ]
         )
     ]
 )

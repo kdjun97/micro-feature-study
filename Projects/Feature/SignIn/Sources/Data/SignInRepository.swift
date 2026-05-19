@@ -10,8 +10,9 @@ public struct SignInRepository: SignInRepositoryProtocol {
     public func signIn() async throws -> Bool {
         let response: SignInResponseDTO = try await networkClient.request(
             CoreNetworkEndpoint(
-                path: "/sign-in",
-                method: "POST"
+                path: .signIn,
+                method: .POST,
+                requiresAuthorization: false
             )
         )
 

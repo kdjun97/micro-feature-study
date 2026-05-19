@@ -10,8 +10,8 @@ public struct DetailRepository: DetailRepositoryProtocol {
     public func logout() async throws -> Bool {
         let response: DetailResponseDTO = try await networkClient.request(
             CoreNetworkEndpoint(
-                path: "/logout",
-                method: "POST"
+                path: .logout,
+                method: .POST
             )
         )
 
