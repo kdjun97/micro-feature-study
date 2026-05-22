@@ -37,26 +37,12 @@ jobs:
 
       - name: Setup XCConfig
         id: setup-xcconfig
-        if: steps.validate-tag.outcome == 'success'
-        continue-on-error: true
+        if: steps.define-cicd-environment.outcome == 'success'
         env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           API_BASE_URL_DEV: ${{ secrets.API_BASE_URL_DEV }}
           API_BASE_URL_PROD: ${{ secrets.API_BASE_URL_PROD }}
         run: ci_scripts/github/pre-build/setup_xcconfig.sh
-
-      - name: Send XCConfig setup failure notification
-        if: steps.setup-xcconfig.outcome == 'failure'
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          ci_scripts/github/webhook/send_discord.sh \
-            --status failure \
-            --message "XCConfig 설정에 실패했어요" \
-            --step setup-xcconfig
-
-      - name: Stop on XCConfig setup failure
-        if: steps.setup-xcconfig.outcome == 'failure'
-        run: exit 1
 
       - name: Setup Firebase
         id: setup-firebase
