@@ -47,3 +47,33 @@ jobs:
             --status started \
             --message "CI/CD started" \
             --step workflow-start
+
+      - name: Setup Firebase
+        id: setup-firebase
+        if: steps.validate-tag.outcome == 'success'
+        continue-on-error: true
+        run: ci_scripts/github/pre-build/setup_firebase.sh
+
+      - name: Send Firebase setup failure notification
+        if: steps.setup-firebase.outcome == 'failure'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          ci_scripts/github/send_discord.sh \
+            --status failure \
+            --message "Firebase 설정에 실패했어요" \
+            --step setup-firebase
+
+      - name: Send Firebase setup success notification
+        if: steps.setup-firebase.outcome == 'success'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          ci_scripts/github/send_discord.sh \
+            --status success \
+            --message "Firebase 설정이 완료됐어요" \
+            --step setup-firebase
+
+      - name: Stop on Firebase setup failure
+        if: steps.setup-firebase.outcome == 'failure'
+        run: exit 1
