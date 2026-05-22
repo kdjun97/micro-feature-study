@@ -18,14 +18,14 @@ jobs:
       - name: Validate deployment tag
         id: validate-tag
         continue-on-error: true
-        run: ci_scripts/github/validate_cicd_context.sh
+        run: ci_scripts/github/pre-build/validate_cicd_context.sh
 
       - name: Send invalid tag notification
         if: steps.validate-tag.outcome == 'failure'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          ci_scripts/github/send_discord.sh \
+          ci_scripts/github/webhook/send_discord.sh \
             --status failure \
             --message "배포 태그가 올바르지 않아요" \
             --step tag-validation
@@ -36,14 +36,14 @@ jobs:
 
       - name: Define CI/CD environment
         if: steps.validate-tag.outcome == 'success'
-        run: ci_scripts/github/define_cicd_environment.sh
+        run: ci_scripts/github/pre-build/define_cicd_environment.sh
 
       - name: Send Discord start notification
         if: steps.validate-tag.outcome == 'success'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          ci_scripts/github/send_discord.sh \
+          ci_scripts/github/webhook/send_discord.sh \
             --status started \
             --message "CI/CD started" \
             --step workflow-start
@@ -62,7 +62,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          ci_scripts/github/send_discord.sh \
+          ci_scripts/github/webhook/send_discord.sh \
             --status failure \
             --message "XCConfig 설정에 실패했어요" \
             --step setup-xcconfig
@@ -95,7 +95,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          ci_scripts/github/send_discord.sh \
+          ci_scripts/github/webhook/send_discord.sh \
             --status failure \
             --message "Firebase 설정에 실패했어요" \
             --step setup-firebase
@@ -117,7 +117,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          ci_scripts/github/send_discord.sh \
+          ci_scripts/github/webhook/send_discord.sh \
             --status failure \
             --message "Tuist 설정에 실패했어요" \
             --step setup-tuist
@@ -128,7 +128,7 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           echo "Tuist 설정 성공"
-          ci_scripts/github/send_discord.sh \
+          ci_scripts/github/webhook/send_discord.sh \
             --status success \
             --message "Tuist 설정 성공" \
             --step setup-tuist
