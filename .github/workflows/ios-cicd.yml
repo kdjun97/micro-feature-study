@@ -15,6 +15,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Define CI/CD environment
+        run: ci_scripts/github/define_cicd_environment.sh
+
       - name: Send Discord start notification
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
