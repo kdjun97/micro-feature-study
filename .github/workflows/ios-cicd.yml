@@ -47,8 +47,8 @@ jobs:
       - name: Setup Firebase
         id: setup-firebase
         if: steps.setup-xcconfig.outcome == 'success'
-        continue-on-error: true
         env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           FIREBASE_API_KEY_DEV: ${{ secrets.FIREBASE_API_KEY_DEV }}
           FIREBASE_API_KEY_PROD: ${{ secrets.FIREBASE_API_KEY_PROD }}
           FIREBASE_GOOGLE_APP_ID_DEV: ${{ secrets.FIREBASE_GOOGLE_APP_ID_DEV }}
@@ -62,20 +62,6 @@ jobs:
           FIREBASE_BUNDLE_ID_DEV: ${{ secrets.FIREBASE_BUNDLE_ID_DEV }}
           FIREBASE_BUNDLE_ID_PROD: ${{ secrets.FIREBASE_BUNDLE_ID_PROD }}
         run: ci_scripts/github/pre-build/setup_firebase.sh
-
-      - name: Send Firebase setup failure notification
-        if: steps.setup-firebase.outcome == 'failure'
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          ci_scripts/github/webhook/send_discord.sh \
-            --status failure \
-            --message "Firebase 설정에 실패했어요" \
-            --step setup-firebase
-
-      - name: Stop on Firebase setup failure
-        if: steps.setup-firebase.outcome == 'failure'
-        run: exit 1
 
       - name: Setup Tuist
         id: setup-tuist

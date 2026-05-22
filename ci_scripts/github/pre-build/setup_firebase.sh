@@ -14,17 +14,40 @@ Options:
 USAGE
 }
 
-die() {
-  echo "setup_firebase.sh: $*" >&2
+notify_failure() {
+  local message="$1"
+
+  echo "Firebase setup failed"
+  echo "Reason: $message" >&2
+
+  ci_scripts/github/webhook/send_discord.sh \
+    --status failure \
+    --message "Firebase 설정에 실패했어요: ${message}" \
+    --step setup-firebase || true
+}
+
+fail() {
+  local message="$1"
+
+  trap - ERR
+  notify_failure "$message"
   exit 1
 }
 
-required_env() {
+handle_unexpected_failure() {
+  local line="$1"
+  local command="$2"
+
+  trap - ERR
+  notify_failure "line ${line}: ${command}"
+  exit 1
+}
+
+require_env() {
   local name="$1"
   local value="${!name:-}"
 
-  [[ -n "$value" ]] || die "required Firebase secret/env is missing: $name"
-  printf '%s' "$value"
+  [[ -n "$value" ]] || fail "required Firebase secret/env is missing: $name"
 }
 
 xml_escape() {
@@ -49,6 +72,12 @@ create_firebase_plist() {
   local raw_project_id
   local raw_storage_bucket
   local raw_bundle_id
+  local api_key_env="FIREBASE_API_KEY_${environment}"
+  local google_app_id_env="FIREBASE_GOOGLE_APP_ID_${environment}"
+  local gcm_sender_id_env="FIREBASE_GCM_SENDER_ID_${environment}"
+  local project_id_env="FIREBASE_PROJECT_ID_${environment}"
+  local storage_bucket_env="FIREBASE_STORAGE_BUCKET_${environment}"
+  local bundle_id_env="FIREBASE_BUNDLE_ID_${environment}"
   local api_key
   local google_app_id
   local gcm_sender_id
@@ -56,12 +85,19 @@ create_firebase_plist() {
   local storage_bucket
   local bundle_id
 
-  raw_api_key="$(required_env "FIREBASE_API_KEY_${environment}")"
-  raw_google_app_id="$(required_env "FIREBASE_GOOGLE_APP_ID_${environment}")"
-  raw_gcm_sender_id="$(required_env "FIREBASE_GCM_SENDER_ID_${environment}")"
-  raw_project_id="$(required_env "FIREBASE_PROJECT_ID_${environment}")"
-  raw_storage_bucket="$(required_env "FIREBASE_STORAGE_BUCKET_${environment}")"
-  raw_bundle_id="$(required_env "FIREBASE_BUNDLE_ID_${environment}")"
+  require_env "$api_key_env"
+  require_env "$google_app_id_env"
+  require_env "$gcm_sender_id_env"
+  require_env "$project_id_env"
+  require_env "$storage_bucket_env"
+  require_env "$bundle_id_env"
+
+  raw_api_key="${!api_key_env}"
+  raw_google_app_id="${!google_app_id_env}"
+  raw_gcm_sender_id="${!gcm_sender_id_env}"
+  raw_project_id="${!project_id_env}"
+  raw_storage_bucket="${!storage_bucket_env}"
+  raw_bundle_id="${!bundle_id_env}"
 
   api_key="$(xml_escape "$raw_api_key")"
   google_app_id="$(xml_escape "$raw_google_app_id")"
@@ -105,7 +141,7 @@ create_firebase_plist() {
 </plist>
 EOF
 
-  [[ -f "$output_path" ]] || die "failed to create Firebase plist: $output_path"
+  [[ -f "$output_path" ]] || fail "failed to create Firebase plist: $output_path"
 }
 
 environment="${ENVIRONMENT:-${CICD_ENVIRONMENT:-}}"
@@ -115,7 +151,7 @@ dry_run=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --environment)
-      [[ $# -ge 2 ]] || die "--environment requires a value"
+      [[ $# -ge 2 ]] || fail "--environment requires a value"
       environment="$2"
       shift 2
       ;;
@@ -128,7 +164,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      die "unknown argument: $1"
+      fail "unknown argument: $1"
       ;;
   esac
 done
@@ -137,7 +173,7 @@ case "$environment" in
   DEV|PROD)
     ;;
   *)
-    die "environment must be DEV or PROD: ${environment:-empty}"
+    fail "environment must be DEV or PROD: ${environment:-empty}"
     ;;
 esac
 
@@ -153,8 +189,9 @@ if [[ "$dry_run" == true ]]; then
 fi
 
 echo "Setup Firebase started"
+trap 'handle_unexpected_failure "$LINENO" "$BASH_COMMAND"' ERR
 create_firebase_plist "$environment" "$source_plist"
 cp "$source_plist" "$destination_plist"
-[[ -f "$destination_plist" ]] || die "failed to create destination Firebase plist"
+[[ -f "$destination_plist" ]] || fail "failed to create destination Firebase plist"
 
 echo "Firebase setup succeeded for $environment"
