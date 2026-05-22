@@ -6,6 +6,7 @@ on:
       - "dev/**"
       - "prod/**"
       - "demo/**"
+      - "design/**"
 
 jobs:
   cicd-start:

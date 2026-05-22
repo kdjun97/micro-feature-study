@@ -29,6 +29,10 @@ case "$branch" in
     ;;
   demo/*/*)
     [[ "$branch" =~ ^demo/[^/]+/[0-9]+(\.[0-9]+){2}-[0-9]{10}$ ]] || die "invalid demo tag format: $branch"
+    [[ "$branch" != demo/DesignSystemDemo/* ]] || die "DesignSystemDemo must use design tag prefix: $branch"
+    ;;
+  design/*)
+    [[ "$branch" =~ ^design/[0-9]+(\.[0-9]+){2}-[0-9]{10}$ ]] || die "invalid design tag format: $branch"
     ;;
   *)
     die "unsupported tag prefix: $branch"

@@ -55,34 +55,48 @@ info_plist=""
 tag_version=""
 version=""
 build_number=""
+deployment_kind=""
+demo_target=""
 
 infer_from_ref() {
   local ref="$1"
   local version_part=""
-  local demo_target=""
 
   case "$ref" in
     dev/*)
       scheme="MicroFeatureStudy-DEV"
       environment="DEV"
       distribution_type="appstore"
+      deployment_kind="DEV"
       version_part="${ref#dev/}"
       tag_version="${version_part%%-*}"
       ;;
     prod/*)
-      scheme="MicroFeatureStudy-PROD"
+      scheme="MicroFeatureStudy"
       environment="PROD"
       distribution_type="appstore"
+      deployment_kind="PROD"
       version_part="${ref#prod/}"
       tag_version="${version_part%%-*}"
       ;;
     demo/*/*)
       demo_target="${ref#demo/}"
       demo_target="${demo_target%%/*}"
+      [[ "$demo_target" != "DesignSystemDemo" ]] || die "DesignSystemDemo must use design tag prefix: $ref"
       scheme="$demo_target"
       environment="DEV"
       distribution_type="firebase"
+      deployment_kind="DEMO"
       version_part="${ref#demo/*/}"
+      tag_version="${version_part%%-*}"
+      ;;
+    design/*)
+      scheme="DesignSystemDemo"
+      environment="DEV"
+      distribution_type="firebase"
+      deployment_kind="DESIGN"
+      demo_target="DesignSystemDemo"
+      version_part="${ref#design/}"
       tag_version="${version_part%%-*}"
       ;;
     *)
@@ -159,13 +173,14 @@ require_value "CICD_BRANCH" "$branch"
 require_value "CICD_SCHEME" "$scheme"
 require_value "CICD_ENVIRONMENT" "$environment"
 require_value "CICD_DISTRIBUTION_TYPE" "$distribution_type"
+require_value "CICD_DEPLOYMENT_KIND" "$deployment_kind"
 
 if [[ -n "$info_plist" && -f "$info_plist" ]]; then
   version="$(read_plist_value "$info_plist" "CFBundleShortVersionString")"
   build_number="$(read_plist_value "$info_plist" "CFBundleVersion")"
 fi
 
-version="${version:-$tag_version}"
+version="${tag_version:-$version}"
 require_value "CICD_VERSION" "$version"
 build_number="${build_number:-}"
 
@@ -179,10 +194,12 @@ write_env "CICD_BRANCH" "$branch"
 write_env "CICD_SCHEME" "$scheme"
 write_env "CICD_ENVIRONMENT" "$environment"
 write_env "CICD_DISTRIBUTION_TYPE" "$distribution_type"
+write_env "CICD_DEPLOYMENT_KIND" "$deployment_kind"
+write_env "CICD_DEMO_TARGET" "$demo_target"
 write_env "CICD_INFO_PLIST" "$info_plist"
 write_env "CICD_VERSION" "$version"
 write_env "CICD_BUILD_NUMBER" "$build_number"
 write_env "CICD_VERSION_DISPLAY" "$version_display"
 
 echo "Define CI/CD environment succeeded"
-echo "Resolved CI/CD environment: branch=$branch, scheme=$scheme, environment=$environment, distribution=$distribution_type, version=$version_display"
+echo "Resolved CI/CD environment: branch=$branch, kind=$deployment_kind, scheme=$scheme, environment=$environment, distribution=$distribution_type, demo_target=${demo_target:-none}, version=$version_display"
