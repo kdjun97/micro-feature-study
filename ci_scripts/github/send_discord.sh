@@ -151,25 +151,64 @@ make_payload() {
 import json
 import os
 
+status = os.environ["STATUS"].lower()
+message = os.environ["MESSAGE"]
+
+status_labels = {
+    "started": "시작",
+    "success": "성공",
+    "succeeded": "성공",
+    "completed": "성공",
+    "failure": "실패",
+    "failed": "실패",
+    "error": "실패",
+    "cancelled": "취소",
+    "canceled": "취소",
+}
+
+status_titles = {
+    "started": "CI/CD 배포가 시작됐어요",
+    "success": "CI/CD 단계가 성공했어요",
+    "succeeded": "CI/CD 단계가 성공했어요",
+    "completed": "CI/CD 단계가 성공했어요",
+    "failure": "CI/CD 단계가 실패했어요",
+    "failed": "CI/CD 단계가 실패했어요",
+    "error": "CI/CD 단계가 실패했어요",
+    "cancelled": "CI/CD 실행이 취소됐어요",
+    "canceled": "CI/CD 실행이 취소됐어요",
+}
+
+status_colors = {
+    "started": 3447003,
+    "success": 3066993,
+    "succeeded": 3066993,
+    "completed": 3066993,
+    "failure": 15158332,
+    "failed": 15158332,
+    "error": 15158332,
+    "cancelled": 9807270,
+    "canceled": 9807270,
+}
+
 fields = [
-    ("status", os.environ["STATUS"]),
-    ("message", os.environ["MESSAGE"]),
-    ("step", os.environ["STEP"]),
-    ("workflow", os.environ["WORKFLOW"]),
-    ("job", os.environ["JOB"]),
-    ("scheme", os.environ["SCHEME"]),
-    ("environment", os.environ["ENVIRONMENT"]),
-    ("branch", os.environ["BRANCH"]),
-    ("datetime", os.environ["DATETIME"]),
+    ("상태", status_labels.get(status, os.environ["STATUS"])),
+    ("메시지", message),
+    ("단계", os.environ["STEP"]),
+    ("워크플로우", os.environ["WORKFLOW"]),
+    ("작업", os.environ["JOB"]),
+    ("대상", os.environ["SCHEME"]),
+    ("환경", os.environ["ENVIRONMENT"]),
+    ("태그/브랜치", os.environ["BRANCH"]),
+    ("시간", os.environ["DATETIME"]),
 ]
 
 payload = {
     "username": "MicroFeatureStudy CI",
-    "content": f"[{os.environ['STATUS']}] {os.environ['MESSAGE']}",
+    "content": status_titles.get(status, message),
     "embeds": [
         {
-            "title": "CI/CD Notification",
-            "color": 3066993 if os.environ["STATUS"].lower() in ("success", "succeeded", "completed") else 15158332 if os.environ["STATUS"].lower() in ("failure", "failed", "error") else 3447003,
+            "title": message,
+            "color": status_colors.get(status, 3447003),
             "fields": [
                 {"name": name, "value": value or "unknown", "inline": True}
                 for name, value in fields
