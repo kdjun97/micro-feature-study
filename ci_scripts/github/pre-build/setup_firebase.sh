@@ -152,8 +152,9 @@ if [[ "$dry_run" == true ]]; then
   exit 0
 fi
 
+echo "Setup Firebase started"
 create_firebase_plist "$environment" "$source_plist"
 cp "$source_plist" "$destination_plist"
 [[ -f "$destination_plist" ]] || die "failed to create destination Firebase plist"
 
-echo "Firebase plist created and selected for $environment"
+echo "Firebase setup succeeded for $environment"

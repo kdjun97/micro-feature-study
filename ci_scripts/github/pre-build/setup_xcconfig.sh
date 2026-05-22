@@ -99,6 +99,7 @@ if [[ "$dry_run" == true ]]; then
   exit 0
 fi
 
+echo "Setup XCConfig started"
 create_xcconfigs
 
-echo "XCConfig files created"
+echo "XCConfig setup succeeded"
