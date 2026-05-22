@@ -22,9 +22,11 @@ jobs:
         run: ci_scripts/github/pre-build/validate_deployment_tag.sh
 
       - name: Define CI/CD environment
+        id: define-cicd-environment
         run: ci_scripts/github/pre-build/define_cicd_environment.sh
 
       - name: Send Discord start notification
+        if: steps.define-cicd-environment.outcome == 'success'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |

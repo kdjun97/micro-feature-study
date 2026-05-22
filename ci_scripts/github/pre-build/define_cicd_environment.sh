@@ -86,9 +86,7 @@ infer_from_ref() {
       tag_version="${version_part%%-*}"
       ;;
     *)
-      scheme="unknown"
-      environment="unknown"
-      distribution_type="unknown"
+      die "unsupported ref: $ref"
       ;;
   esac
 }
@@ -147,8 +145,20 @@ write_env() {
   printf '%s=%s\n' "$key" "$value" >> "$GITHUB_ENV"
 }
 
+require_value() {
+  local key="$1"
+  local value="$2"
+
+  [[ -n "$value" && "$value" != "unknown" ]] || die "$key could not be resolved"
+}
+
 infer_from_ref "$branch"
 info_plist="$(infer_info_plist_path "$scheme")"
+
+require_value "CICD_BRANCH" "$branch"
+require_value "CICD_SCHEME" "$scheme"
+require_value "CICD_ENVIRONMENT" "$environment"
+require_value "CICD_DISTRIBUTION_TYPE" "$distribution_type"
 
 if [[ -n "$info_plist" && -f "$info_plist" ]]; then
   version="$(read_plist_value "$info_plist" "CFBundleShortVersionString")"
@@ -156,7 +166,7 @@ if [[ -n "$info_plist" && -f "$info_plist" ]]; then
 fi
 
 version="${version:-$tag_version}"
-version="${version:-unknown}"
+require_value "CICD_VERSION" "$version"
 build_number="${build_number:-}"
 
 if [[ -n "$build_number" && "$version" != "unknown" ]]; then
@@ -173,3 +183,6 @@ write_env "CICD_INFO_PLIST" "$info_plist"
 write_env "CICD_VERSION" "$version"
 write_env "CICD_BUILD_NUMBER" "$build_number"
 write_env "CICD_VERSION_DISPLAY" "$version_display"
+
+echo "Define CI/CD environment succeeded"
+echo "Resolved CI/CD environment: branch=$branch, scheme=$scheme, environment=$environment, distribution=$distribution_type, version=$version_display"
