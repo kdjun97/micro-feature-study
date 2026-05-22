@@ -13,11 +13,6 @@ Options:
 USAGE
 }
 
-die() {
-  echo "setup_xcconfig.sh: $*" >&2
-  exit 1
-}
-
 notify_failure() {
   local message="$1"
 
