@@ -3,9 +3,20 @@
 set -euo pipefail
 
 die() {
-  echo "validate_cicd_context.sh: $*" >&2
+  local message="$1"
+
+  echo "Validate deployment tag failed"
+  echo "Reason: $message" >&2
+
+  ci_scripts/github/webhook/send_discord.sh \
+    --status failure \
+    --message "배포 태그가 올바르지 않아요: ${message}" \
+    --step tag-validation || true
+
   exit 1
 }
+
+echo "Validate deployment tag started"
 
 branch="${BRANCH:-${GITHUB_REF_NAME:-}}"
 
@@ -24,4 +35,4 @@ case "$branch" in
     ;;
 esac
 
-echo "CI/CD deployment tag is valid"
+echo "Validate deployment tag succeeded"
