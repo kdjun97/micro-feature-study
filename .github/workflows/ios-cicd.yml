@@ -16,6 +16,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Validate deployment tag
+        id: validate-tag
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: ci_scripts/github/pre-build/validate_deployment_tag.sh
