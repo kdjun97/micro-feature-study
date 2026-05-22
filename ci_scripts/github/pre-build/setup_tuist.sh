@@ -44,6 +44,12 @@ fi
 
 echo "Setup Tuist started"
 
+if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+  echo "GitHub token detected for mise downloads"
+else
+  echo "GitHub token is not set; mise may hit GitHub API rate limits"
+fi
+
 if ! command -v mise >/dev/null 2>&1; then
   echo "mise install started"
   curl https://mise.jdx.dev/install.sh | sh

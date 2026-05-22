@@ -108,6 +108,8 @@ jobs:
         id: setup-tuist
         if: steps.setup-firebase.outcome == 'success'
         continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: ci_scripts/github/pre-build/setup_tuist.sh
 
       - name: Send Tuist setup failure notification
