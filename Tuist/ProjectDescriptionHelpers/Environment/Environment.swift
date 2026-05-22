@@ -7,17 +7,11 @@
 
 public enum Environment: CaseIterable {
     case dev
-    case int
-    case qa
-    case stage
     case prod
 
     public var name: String {
         switch self {
         case .dev: "DEV"
-        case .int: "INT"
-        case .qa: "QA"
-        case .stage: "STAGE"
         case .prod: "PROD"
         }
     }
