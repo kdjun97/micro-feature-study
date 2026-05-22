@@ -102,6 +102,7 @@ import os
 
 status = os.environ["STATUS"].lower()
 message = os.environ["MESSAGE"]
+step = os.environ["STEP"]
 
 status_labels = {
     "started": "🚀 시작",
@@ -154,7 +155,7 @@ fields = [
 
 payload = {
     "username": "MicroFeatureStudy CI",
-    "content": status_titles.get(status, message),
+    "content": message if step == "tag-validation" else status_titles.get(status, message),
     "embeds": [
         {
             "title": message,

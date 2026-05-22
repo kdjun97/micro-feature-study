@@ -15,10 +15,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Validate deployment tag
+        id: validate-tag
+        continue-on-error: true
+        run: ci_scripts/github/validate_cicd_context.sh
+
+      - name: Send invalid tag notification
+        if: steps.validate-tag.outcome == 'failure'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          ci_scripts/github/send_discord.sh \
+            --status failure \
+            --message "배포 태그가 올바르지 않아요" \
+            --step tag-validation
+
+      - name: Stop on invalid tag
+        if: steps.validate-tag.outcome == 'failure'
+        run: exit 1
+
       - name: Define CI/CD environment
+        if: steps.validate-tag.outcome == 'success'
         run: ci_scripts/github/define_cicd_environment.sh
 
       - name: Send Discord start notification
+        if: steps.validate-tag.outcome == 'success'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
