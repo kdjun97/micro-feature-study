@@ -1,0 +1,25 @@
+name: iOS CI/CD
+
+on:
+  push:
+    tags:
+      - "dev/**"
+      - "prod/**"
+      - "demo/**"
+
+jobs:
+  cicd-start:
+    name: CI/CD Start
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Send Discord start notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          ci_scripts/github/send_discord.sh \
+            --status started \
+            --message "CI/CD started" \
+            --step workflow-start
