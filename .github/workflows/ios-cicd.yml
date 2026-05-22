@@ -66,32 +66,11 @@ jobs:
       - name: Setup Tuist
         id: setup-tuist
         if: steps.setup-firebase.outcome == 'success'
-        continue-on-error: true
         env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           GITHUB_TOKEN: ${{ github.token }}
         run: ci_scripts/github/pre-build/setup_tuist.sh
 
-      - name: Send Tuist setup failure notification
-        if: steps.setup-tuist.outcome == 'failure'
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          ci_scripts/github/webhook/send_discord.sh \
-            --status failure \
-            --message "Tuist 설정에 실패했어요" \
-            --step setup-tuist
-
-      - name: Send Tuist setup success notification
+      - name: Continue after Tuist setup
         if: steps.setup-tuist.outcome == 'success'
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          echo "Tuist 설정 성공"
-          ci_scripts/github/webhook/send_discord.sh \
-            --status success \
-            --message "Tuist 설정 성공" \
-            --step setup-tuist
-
-      - name: Stop on Tuist setup failure
-        if: steps.setup-tuist.outcome == 'failure'
-        run: exit 1
+        run: echo "Tuist setup succeeded; next CI/CD step will be added in a later PR"

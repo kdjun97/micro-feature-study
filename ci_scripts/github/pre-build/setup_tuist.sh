@@ -13,8 +13,41 @@ Options:
 USAGE
 }
 
-die() {
-  echo "setup_tuist.sh: $*" >&2
+notify_failure() {
+  local message="$1"
+
+  echo "Tuist setup failed"
+  echo "Reason: $message" >&2
+
+  ci_scripts/github/webhook/send_discord.sh \
+    --status failure \
+    --message "Tuist 설정에 실패했어요: ${message}" \
+    --step setup-tuist || true
+}
+
+notify_success() {
+  echo "Tuist setup succeeded"
+
+  ci_scripts/github/webhook/send_discord.sh \
+    --status success \
+    --message "Tuist 설정 성공" \
+    --step setup-tuist || true
+}
+
+fail() {
+  local message="$1"
+
+  trap - ERR
+  notify_failure "$message"
+  exit 1
+}
+
+handle_unexpected_failure() {
+  local line="$1"
+  local command="$2"
+
+  trap - ERR
+  notify_failure "line ${line}: ${command}"
   exit 1
 }
 
@@ -31,7 +64,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      die "unknown argument: $1"
+      fail "unknown argument: $1"
       ;;
   esac
 done
@@ -43,6 +76,7 @@ if [[ "$dry_run" == true ]]; then
 fi
 
 echo "Setup Tuist started"
+trap 'handle_unexpected_failure "$LINENO" "$BASH_COMMAND"' ERR
 
 if [[ -n "${GITHUB_TOKEN:-}" ]]; then
   echo "GitHub token detected for mise downloads"
@@ -82,4 +116,4 @@ echo "Tuist clean succeeded"
 echo "Tuist generate started"
 mise exec -- make generate
 
-echo "Tuist setup succeeded"
+notify_success
