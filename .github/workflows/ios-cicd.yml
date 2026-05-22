@@ -48,9 +48,32 @@ jobs:
             --message "CI/CD started" \
             --step workflow-start
 
+      - name: Setup XCConfig
+        id: setup-xcconfig
+        if: steps.validate-tag.outcome == 'success'
+        continue-on-error: true
+        env:
+          API_BASE_URL_DEV: ${{ secrets.API_BASE_URL_DEV }}
+          API_BASE_URL_PROD: ${{ secrets.API_BASE_URL_PROD }}
+        run: ci_scripts/github/pre-build/setup_xcconfig.sh
+
+      - name: Send XCConfig setup failure notification
+        if: steps.setup-xcconfig.outcome == 'failure'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          ci_scripts/github/send_discord.sh \
+            --status failure \
+            --message "XCConfig 설정에 실패했어요" \
+            --step setup-xcconfig
+
+      - name: Stop on XCConfig setup failure
+        if: steps.setup-xcconfig.outcome == 'failure'
+        run: exit 1
+
       - name: Setup Firebase
         id: setup-firebase
-        if: steps.validate-tag.outcome == 'success'
+        if: steps.setup-xcconfig.outcome == 'success'
         continue-on-error: true
         env:
           FIREBASE_API_KEY_DEV: ${{ secrets.FIREBASE_API_KEY_DEV }}
@@ -75,16 +98,6 @@ jobs:
           ci_scripts/github/send_discord.sh \
             --status failure \
             --message "Firebase 설정에 실패했어요" \
-            --step setup-firebase
-
-      - name: Send Firebase setup success notification
-        if: steps.setup-firebase.outcome == 'success'
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          ci_scripts/github/send_discord.sh \
-            --status success \
-            --message "Firebase 설정이 완료됐어요" \
             --step setup-firebase
 
       - name: Stop on Firebase setup failure
