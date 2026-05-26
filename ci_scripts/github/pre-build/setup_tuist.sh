@@ -27,11 +27,6 @@ notify_failure() {
 
 notify_success() {
   echo "Tuist setup succeeded"
-
-  ci_scripts/github/webhook/send_discord.sh \
-    --status success \
-    --message "Tuist 설정 성공" \
-    --step setup-tuist || true
 }
 
 fail() {
