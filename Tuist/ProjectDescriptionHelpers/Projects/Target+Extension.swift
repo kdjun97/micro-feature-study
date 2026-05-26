@@ -23,8 +23,10 @@ public extension Target {
     }
     
     static func demo(moduleType: Module) -> Target {
+        let demoName = "\(moduleType.name)Demo"
+        
         return .target(
-            name: "\(moduleType.name)Demo",
+            name: demoName,
             destinations: projectEnvironment.destination,
             product: .app,
             bundleId: "\(moduleType.bundleID).demo",
@@ -32,7 +34,10 @@ public extension Target {
             infoPlist: .file(path: "Demo/Support/Info.plist"),
             sources: .demo,
             dependencies: moduleType.demoDependencies,
-            settings: .settings(configurations: .default)
+            settings: .settings(
+                base: [ "BUNDLE_NAME": .string(demoName) ],
+                configurations: .default
+            )
         )
     }
     
