@@ -1,0 +1,176 @@
+require "base64"
+require "fileutils"
+require "shellwords"
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and distribute the app selected by CI/CD tag metadata"
+  lane :cicd do
+    scheme = required_env("CICD_SCHEME")
+    deployment_kind = required_env("CICD_DEPLOYMENT_KIND")
+    distribution_type = required_env("CICD_DISTRIBUTION_TYPE")
+    version = required_env("CICD_VERSION")
+    build_number = ENV["CICD_BUILD_NUMBER"].to_s
+
+    output_directory = ENV.fetch("CICD_OUTPUT_DIRECTORY", "build/#{deployment_kind.downcase}")
+    output_name = "#{scheme}-#{version}.ipa"
+    export_method = export_method_for(distribution_type)
+    signing_xcargs = signing_xcargs_for(distribution_type)
+
+    setup_ci if ENV["CI"]
+    sync_signing_if_needed(distribution_type)
+
+    build_options = {
+      workspace: "MicroFeatureStudy.xcworkspace",
+      scheme: scheme,
+      clean: true,
+      export_method: export_method,
+      output_directory: output_directory,
+      output_name: output_name,
+      build_path: "#{output_directory}/archives",
+      archive_path: "#{output_directory}/archives/#{scheme}.xcarchive"
+    }
+    unless signing_xcargs.empty?
+      build_options[:xcargs] = signing_xcargs
+      build_options[:export_xcargs] = signing_xcargs
+    end
+
+    ipa_path = build_ios_app(build_options)
+
+    UI.message("Built #{scheme} #{version}#{build_number.empty? ? "" : " (#{build_number})"}")
+
+    case distribution_type
+    when "appstore"
+      upload_to_testflight_release(ipa_path)
+    when "firebase"
+      distribute_to_firebase(ipa_path)
+    else
+      UI.user_error!("Unsupported distribution type: #{distribution_type}")
+    end
+  end
+end
+
+def required_env(name)
+  value = ENV[name].to_s
+  UI.user_error!("Missing required environment variable: #{name}") if value.empty?
+  value
+end
+
+def export_method_for(distribution_type)
+  case distribution_type
+  when "appstore"
+    "app-store"
+  when "firebase"
+    ENV.fetch("CICD_FIREBASE_EXPORT_METHOD", "ad-hoc")
+  else
+    UI.user_error!("Unsupported distribution type: #{distribution_type}")
+  end
+end
+
+def signing_mode
+  ENV.fetch("CICD_SIGNING_MODE", "automatic")
+end
+
+def sync_signing_if_needed(distribution_type)
+  return unless signing_mode == "match"
+  UI.user_error!("MATCH_GIT_URL is required when CICD_SIGNING_MODE=match") if ENV["MATCH_GIT_URL"].to_s.empty?
+
+  match(
+    type: distribution_type == "appstore" ? "appstore" : ENV.fetch("MATCH_FIREBASE_TYPE", "adhoc"),
+    readonly: true
+  )
+end
+
+def signing_xcargs_for(_distribution_type)
+  case signing_mode
+  when "automatic"
+    automatic_signing_xcargs
+  when "match"
+    ""
+  else
+    UI.user_error!("Unsupported signing mode: #{signing_mode}")
+  end
+end
+
+def automatic_signing_xcargs
+  team_id = required_env("APPLE_TEAM_ID")
+  key_id = required_env("APP_STORE_CONNECT_API_KEY_KEY_ID")
+  issuer_id = required_env("APP_STORE_CONNECT_API_KEY_ISSUER_ID")
+  key_path = write_app_store_connect_api_key_file(key_id)
+
+  [
+    "-allowProvisioningUpdates",
+    "-authenticationKeyPath #{Shellwords.escape(key_path)}",
+    "-authenticationKeyID #{Shellwords.escape(key_id)}",
+    "-authenticationKeyIssuerID #{Shellwords.escape(issuer_id)}",
+    "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}",
+    "CODE_SIGN_STYLE=Automatic"
+  ].join(" ")
+end
+
+def upload_to_testflight_release(ipa_path)
+  api_key = app_store_connect_api_key(
+    key_id: required_env("APP_STORE_CONNECT_API_KEY_KEY_ID"),
+    issuer_id: required_env("APP_STORE_CONNECT_API_KEY_ISSUER_ID"),
+    key_content: required_env("APP_STORE_CONNECT_API_KEY_KEY"),
+    is_key_content_base64: app_store_connect_key_base64?,
+    in_house: false
+  )
+
+  upload_to_testflight(
+    api_key: api_key,
+    ipa: ipa_path,
+    skip_waiting_for_build_processing: true
+  )
+end
+
+def app_store_connect_key_base64?
+  value = ENV["APP_STORE_CONNECT_API_KEY_IS_BASE64"].to_s
+  value.empty? || value == "true"
+end
+
+def write_app_store_connect_api_key_file(key_id)
+  key_content = required_env("APP_STORE_CONNECT_API_KEY_KEY")
+  key_content = Base64.decode64(key_content) if app_store_connect_key_base64?
+  output_directory = ENV.fetch("RUNNER_TEMP", "build/app-store-connect")
+  key_path = File.join(output_directory, "AuthKey_#{key_id}.p8")
+
+  FileUtils.mkdir_p(output_directory)
+  File.write(key_path, key_content)
+  key_path
+end
+
+def distribute_to_firebase(ipa_path)
+  firebase_app_id = firebase_app_id_for_current_target
+  firebase_app_id = ENV["FIREBASE_GOOGLE_APP_ID_#{ENV.fetch("CICD_ENVIRONMENT", "DEV")}"].to_s if firebase_app_id.empty?
+  UI.user_error!("Missing Firebase App Distribution app id for #{ENV["CICD_SCHEME"]}") if firebase_app_id.empty?
+  UI.user_error!("Missing Firebase App Distribution auth. Set FIREBASE_TOKEN or FIREBASE_SERVICE_CREDENTIALS_JSON.") if ENV["FIREBASE_TOKEN"].to_s.empty? && ENV["FIREBASE_SERVICE_CREDENTIALS_FILE"].to_s.empty?
+
+  firebase_options = {
+    app: firebase_app_id,
+    ipa_path: ipa_path,
+    release_notes: ENV.fetch("FIREBASE_RELEASE_NOTES", "CI/CD #{ENV["CICD_BRANCH"]}")
+  }
+  firebase_options[:groups] = ENV["FIREBASE_DISTRIBUTION_GROUPS"] unless ENV["FIREBASE_DISTRIBUTION_GROUPS"].to_s.empty?
+  firebase_options[:firebase_cli_token] = ENV["FIREBASE_TOKEN"] unless ENV["FIREBASE_TOKEN"].to_s.empty?
+  firebase_options[:service_credentials_file] = ENV["FIREBASE_SERVICE_CREDENTIALS_FILE"] unless ENV["FIREBASE_SERVICE_CREDENTIALS_FILE"].to_s.empty?
+
+  firebase_app_distribution(firebase_options)
+end
+
+def firebase_app_id_for_current_target
+  scheme = ENV["CICD_SCHEME"].to_s.upcase.gsub(/[^A-Z0-9]/, "_")
+  kind = ENV["CICD_DEPLOYMENT_KIND"].to_s.upcase.gsub(/[^A-Z0-9]/, "_")
+
+  [
+    "FIREBASE_APP_ID_#{scheme}",
+    "FIREBASE_APP_ID_#{kind}",
+    "FIREBASE_APP_ID"
+  ].each do |key|
+    value = ENV[key].to_s
+    return value unless value.empty?
+  end
+
+  ""
+end

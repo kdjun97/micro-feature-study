@@ -70,3 +70,6 @@ Derived/
 Tuist/.build
 .build
 /XCConfig
+
+AGENTS.md
+GoogleService-Info*
