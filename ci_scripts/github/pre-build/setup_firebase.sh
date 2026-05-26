@@ -8,7 +8,7 @@ Usage:
   setup_firebase.sh [--environment <DEV|PROD>] [--dry-run]
 
 Options:
-  --environment  Firebase environment. Defaults to CICD_ENVIRONMENT.
+  --environment  Firebase environment. Defaults to CICD_ENVIRONMENT. Used only for DEV/PROD deployments.
   --dry-run      Print planned copy without changing files.
   --help         Show this help.
 USAGE
@@ -145,6 +145,7 @@ EOF
 }
 
 environment="${ENVIRONMENT:-${CICD_ENVIRONMENT:-}}"
+deployment_kind="${CICD_DEPLOYMENT_KIND:-}"
 firebase_dir="Projects/App/Resources/Firebase"
 dry_run=false
 
@@ -168,6 +169,28 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+case "$deployment_kind" in
+  DEMO|DESIGN)
+    if [[ "$dry_run" == true ]]; then
+      echo "Firebase setup dry-run"
+      echo "deployment_kind=$deployment_kind"
+      echo "action=skip"
+      echo "reason=Demo apps do not require GoogleService-Info.plist"
+      exit 0
+    fi
+
+    echo "Setup Firebase started"
+    echo "Firebase plist setup skipped for $deployment_kind because demo apps do not use GoogleService-Info.plist"
+    echo "Firebase setup succeeded for $deployment_kind"
+    exit 0
+    ;;
+  DEV|PROD|"")
+    ;;
+  *)
+    fail "deployment kind must be DEV, PROD, DEMO, or DESIGN: $deployment_kind"
+    ;;
+esac
 
 case "$environment" in
   DEV|PROD)

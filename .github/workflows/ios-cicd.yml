@@ -72,6 +72,33 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: ci_scripts/github/pre-build/setup_tuist.sh
 
-      - name: Continue after Tuist setup
+      - name: Setup Ruby
         if: steps.setup-tuist.outcome == 'success'
-        run: echo "Tuist setup succeeded; next CI/CD step will be added in a later PR"
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Build and distribute app
+        if: steps.setup-tuist.outcome == 'success'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          CICD_SIGNING_MODE: automatic
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_APP_ID_DEMO: ${{ secrets.FIREBASE_APP_ID_DEMO }}
+          FIREBASE_APP_ID_DESIGN: ${{ secrets.FIREBASE_APP_ID_DESIGN }}
+          FIREBASE_APP_ID_SIGNINDEMO: ${{ secrets.FIREBASE_APP_ID_SIGNINDEMO }}
+          FIREBASE_APP_ID_DASHBOARDDEMO: ${{ secrets.FIREBASE_APP_ID_DASHBOARDDEMO }}
+          FIREBASE_APP_ID_DETAILDEMO: ${{ secrets.FIREBASE_APP_ID_DETAILDEMO }}
+          FIREBASE_APP_ID_DESIGNSYSTEMDEMO: ${{ secrets.FIREBASE_APP_ID_DESIGNSYSTEMDEMO }}
+          FIREBASE_DISTRIBUTION_GROUPS: ${{ secrets.FIREBASE_DISTRIBUTION_GROUPS }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_SERVICE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS_JSON }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+          APP_STORE_CONNECT_API_KEY_IS_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_IS_BASE64 }}
+        run: ci_scripts/github/distribution/build_app.sh
