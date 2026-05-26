@@ -75,20 +75,9 @@ jobs:
       - name: Setup Ruby
         id: setup-ruby
         if: steps.setup-tuist.outcome == 'success'
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.1"
-          bundler-cache: true
-
-      - name: Send Discord Ruby setup failure notification
-        if: failure() && steps.setup-ruby.outcome == 'failure'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          ci_scripts/github/webhook/send_discord.sh \
-            --status failure \
-            --message "Ruby/Fastlane 설치에 실패했어요" \
-            --step setup-ruby
+        run: ci_scripts/github/distribution/setup_ruby.sh
 
       - name: Build and distribute app
         if: steps.setup-ruby.outcome == 'success'
