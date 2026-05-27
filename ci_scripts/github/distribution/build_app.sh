@@ -59,13 +59,17 @@ require_env() {
 }
 
 prepare_firebase_credentials() {
-  [[ -n "${FIREBASE_SERVICE_CREDENTIALS_JSON:-}" ]] || return
+  if [[ -z "${FIREBASE_SERVICE_CREDENTIALS_JSON:-}" ]]; then
+    echo "Firebase service credentials JSON is not set; using FIREBASE_TOKEN or fastlane Firebase auth fallback"
+    return 0
+  fi
 
   local credentials_file="${RUNNER_TEMP:-/tmp}/firebase-service-account.json"
 
   printf '%s' "$FIREBASE_SERVICE_CREDENTIALS_JSON" > "$credentials_file"
   export FIREBASE_SERVICE_CREDENTIALS_FILE="$credentials_file"
   export GOOGLE_APPLICATION_CREDENTIALS="$credentials_file"
+  echo "Firebase service credentials file prepared"
 }
 
 scheme_exists() {
