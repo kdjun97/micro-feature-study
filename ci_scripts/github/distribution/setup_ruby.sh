@@ -66,7 +66,7 @@ if [[ "$dry_run" == true ]]; then
   echo "Ruby setup dry-run"
   echo "ruby_version=$ruby_version"
   echo "bundler_version=$bundler_version"
-  echo "commands=mise install ruby@$ruby_version, gem install bundler, bundle install"
+  echo "commands=mise settings ruby.compile=false, mise install ruby@$ruby_version, gem install bundler, bundle install"
   exit 0
 fi
 
@@ -80,7 +80,13 @@ command -v mise >/dev/null 2>&1 || fail "mise is not installed; setup-tuist must
 [[ -f "Gemfile.lock" ]] || fail "Gemfile.lock does not exist"
 
 echo "Ruby install started"
-mise install "ruby@$ruby_version"
+echo "Ruby precompiled binary setting started"
+mise settings ruby.compile=false
+echo "Ruby precompiled binary setting succeeded"
+
+if ! mise install "ruby@$ruby_version"; then
+  fail "failed to install ruby@$ruby_version with mise precompiled binary"
+fi
 echo "Ruby install succeeded"
 
 ruby_bin="$HOME/.local/share/mise/installs/ruby/$ruby_version/bin"
