@@ -145,7 +145,7 @@ def distribute_to_firebase(ipa_path)
   firebase_app_id = firebase_app_id_for_current_target
   firebase_app_id = ENV["FIREBASE_GOOGLE_APP_ID_#{ENV.fetch("CICD_ENVIRONMENT", "DEV")}"].to_s if firebase_app_id.empty?
   UI.user_error!("Missing Firebase App Distribution app id for #{ENV["CICD_SCHEME"]}") if firebase_app_id.empty?
-  UI.user_error!("Missing Firebase App Distribution auth. Set FIREBASE_TOKEN or FIREBASE_SERVICE_CREDENTIALS_JSON.") if ENV["FIREBASE_TOKEN"].to_s.empty? && ENV["FIREBASE_SERVICE_CREDENTIALS_FILE"].to_s.empty?
+  UI.user_error!("Missing Firebase App Distribution auth. Set FIREBASE_TOKEN.") if ENV["FIREBASE_TOKEN"].to_s.empty?
 
   firebase_options = {
     app: firebase_app_id,
@@ -153,8 +153,7 @@ def distribute_to_firebase(ipa_path)
     release_notes: ENV.fetch("FIREBASE_RELEASE_NOTES", "CI/CD #{ENV["CICD_BRANCH"]}")
   }
   firebase_options[:groups] = ENV["FIREBASE_DISTRIBUTION_GROUPS"] unless ENV["FIREBASE_DISTRIBUTION_GROUPS"].to_s.empty?
-  firebase_options[:firebase_cli_token] = ENV["FIREBASE_TOKEN"] unless ENV["FIREBASE_TOKEN"].to_s.empty?
-  firebase_options[:service_credentials_file] = ENV["FIREBASE_SERVICE_CREDENTIALS_FILE"] unless ENV["FIREBASE_SERVICE_CREDENTIALS_FILE"].to_s.empty?
+  firebase_options[:firebase_cli_token] = ENV["FIREBASE_TOKEN"]
 
   firebase_app_distribution(firebase_options)
 end

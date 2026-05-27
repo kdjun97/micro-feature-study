@@ -58,20 +58,6 @@ require_env() {
   [[ -n "$value" ]] || fail "required build env is missing: $name"
 }
 
-prepare_firebase_credentials() {
-  if [[ -z "${FIREBASE_SERVICE_CREDENTIALS_JSON:-}" ]]; then
-    echo "Firebase service credentials JSON is not set; using FIREBASE_TOKEN or fastlane Firebase auth fallback"
-    return 0
-  fi
-
-  local credentials_file="${RUNNER_TEMP:-/tmp}/firebase-service-account.json"
-
-  printf '%s' "$FIREBASE_SERVICE_CREDENTIALS_JSON" > "$credentials_file"
-  export FIREBASE_SERVICE_CREDENTIALS_FILE="$credentials_file"
-  export GOOGLE_APPLICATION_CREDENTIALS="$credentials_file"
-  echo "Firebase service credentials file prepared"
-}
-
 scheme_exists() {
   local scheme="$1"
 
@@ -122,7 +108,6 @@ export FASTLANE_HIDE_CHANGELOG=1
 export FASTLANE_OPT_OUT_USAGE=1
 
 scheme_exists "$CICD_SCHEME" || fail "shared scheme does not exist: $CICD_SCHEME"
-prepare_firebase_credentials
 
 if command -v bundle >/dev/null 2>&1; then
   echo "Bundle install started"
