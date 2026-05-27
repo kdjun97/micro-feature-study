@@ -102,15 +102,14 @@ def automatic_signing_options
 
   {
     archive_xcargs: [
-      "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}",
-      "CODE_SIGN_STYLE=Automatic"
-    ].join(" "),
-    export_xcargs: [
       "-allowProvisioningUpdates",
       "-authenticationKeyPath #{Shellwords.escape(key_path)}",
       "-authenticationKeyID #{Shellwords.escape(key_id)}",
-      "-authenticationKeyIssuerID #{Shellwords.escape(issuer_id)}"
-    ].join(" ")
+      "-authenticationKeyIssuerID #{Shellwords.escape(issuer_id)}",
+      "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}",
+      "CODE_SIGN_STYLE=Automatic"
+    ].join(" "),
+    export_xcargs: ""
   }
 end
 
