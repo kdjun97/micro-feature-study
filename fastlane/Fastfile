@@ -16,7 +16,7 @@ platform :ios do
     output_directory = ENV.fetch("CICD_OUTPUT_DIRECTORY", "build/#{deployment_kind.downcase}")
     output_name = "#{scheme}-#{version}.ipa"
     export_method = export_method_for(distribution_type)
-    signing_xcargs = signing_xcargs_for(distribution_type)
+    signing_options = signing_options_for(distribution_type)
 
     setup_ci if ENV["CI"]
     sync_signing_if_needed(distribution_type)
@@ -31,10 +31,8 @@ platform :ios do
       build_path: "#{output_directory}/archives",
       archive_path: "#{output_directory}/archives/#{scheme}.xcarchive"
     }
-    unless signing_xcargs.empty?
-      build_options[:xcargs] = signing_xcargs
-      build_options[:export_xcargs] = signing_xcargs
-    end
+    build_options[:xcargs] = signing_options[:archive_xcargs] unless signing_options[:archive_xcargs].empty?
+    build_options[:export_xcargs] = signing_options[:export_xcargs] unless signing_options[:export_xcargs].empty?
 
     ipa_path = build_ios_app(build_options)
 
@@ -82,31 +80,37 @@ def sync_signing_if_needed(distribution_type)
   )
 end
 
-def signing_xcargs_for(_distribution_type)
+def signing_options_for(_distribution_type)
   case signing_mode
   when "automatic"
-    automatic_signing_xcargs
+    automatic_signing_options
   when "match"
-    ""
+    {
+      archive_xcargs: "",
+      export_xcargs: ""
+    }
   else
     UI.user_error!("Unsupported signing mode: #{signing_mode}")
   end
 end
 
-def automatic_signing_xcargs
+def automatic_signing_options
   team_id = required_env("APPLE_TEAM_ID")
   key_id = required_env("APP_STORE_CONNECT_API_KEY_KEY_ID")
   issuer_id = required_env("APP_STORE_CONNECT_API_KEY_ISSUER_ID")
   key_path = write_app_store_connect_api_key_file(key_id)
 
-  [
-    "-allowProvisioningUpdates",
-    "-authenticationKeyPath #{Shellwords.escape(key_path)}",
-    "-authenticationKeyID #{Shellwords.escape(key_id)}",
-    "-authenticationKeyIssuerID #{Shellwords.escape(issuer_id)}",
-    "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}",
-    "CODE_SIGN_STYLE=Automatic"
-  ].join(" ")
+  {
+    archive_xcargs: [
+      "-allowProvisioningUpdates",
+      "-authenticationKeyPath #{Shellwords.escape(key_path)}",
+      "-authenticationKeyID #{Shellwords.escape(key_id)}",
+      "-authenticationKeyIssuerID #{Shellwords.escape(issuer_id)}",
+      "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}",
+      "CODE_SIGN_STYLE=Automatic"
+    ].join(" "),
+    export_xcargs: ""
+  }
 end
 
 def upload_to_testflight_release(ipa_path)
@@ -145,7 +149,7 @@ def distribute_to_firebase(ipa_path)
   firebase_app_id = firebase_app_id_for_current_target
   firebase_app_id = ENV["FIREBASE_GOOGLE_APP_ID_#{ENV.fetch("CICD_ENVIRONMENT", "DEV")}"].to_s if firebase_app_id.empty?
   UI.user_error!("Missing Firebase App Distribution app id for #{ENV["CICD_SCHEME"]}") if firebase_app_id.empty?
-  UI.user_error!("Missing Firebase App Distribution auth. Set FIREBASE_TOKEN or FIREBASE_SERVICE_CREDENTIALS_JSON.") if ENV["FIREBASE_TOKEN"].to_s.empty? && ENV["FIREBASE_SERVICE_CREDENTIALS_FILE"].to_s.empty?
+  UI.user_error!("Missing Firebase App Distribution auth. Set FIREBASE_TOKEN.") if ENV["FIREBASE_TOKEN"].to_s.empty?
 
   firebase_options = {
     app: firebase_app_id,
@@ -153,8 +157,7 @@ def distribute_to_firebase(ipa_path)
     release_notes: ENV.fetch("FIREBASE_RELEASE_NOTES", "CI/CD #{ENV["CICD_BRANCH"]}")
   }
   firebase_options[:groups] = ENV["FIREBASE_DISTRIBUTION_GROUPS"] unless ENV["FIREBASE_DISTRIBUTION_GROUPS"].to_s.empty?
-  firebase_options[:firebase_cli_token] = ENV["FIREBASE_TOKEN"] unless ENV["FIREBASE_TOKEN"].to_s.empty?
-  firebase_options[:service_credentials_file] = ENV["FIREBASE_SERVICE_CREDENTIALS_FILE"] unless ENV["FIREBASE_SERVICE_CREDENTIALS_FILE"].to_s.empty?
+  firebase_options[:firebase_cli_token] = ENV["FIREBASE_TOKEN"]
 
   firebase_app_distribution(firebase_options)
 end

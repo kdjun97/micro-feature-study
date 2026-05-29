@@ -43,7 +43,6 @@ handle_unexpected_failure() {
 }
 
 dry_run=false
-ruby_version="${CICD_RUBY_VERSION:-3.1.6}"
 bundler_version="${CICD_BUNDLER_VERSION:-2.4.22}"
 
 while [[ $# -gt 0 ]]; do
@@ -64,9 +63,8 @@ done
 
 if [[ "$dry_run" == true ]]; then
   echo "Ruby setup dry-run"
-  echo "ruby_version=$ruby_version"
   echo "bundler_version=$bundler_version"
-  echo "commands=mise install ruby@$ruby_version, gem install bundler, bundle install"
+  echo "commands=brew install ruby, gem install bundler, bundle install"
   exit 0
 fi
 
@@ -75,15 +73,19 @@ trap 'handle_unexpected_failure "$LINENO" "$BASH_COMMAND"' ERR
 
 export PATH="$HOME/.local/bin:$PATH"
 
-command -v mise >/dev/null 2>&1 || fail "mise is not installed; setup-tuist must run before setup-ruby"
 [[ -f "Gemfile" ]] || fail "Gemfile does not exist"
 [[ -f "Gemfile.lock" ]] || fail "Gemfile.lock does not exist"
 
 echo "Ruby install started"
-mise install "ruby@$ruby_version"
+command -v brew >/dev/null 2>&1 || fail "Homebrew is not installed"
+if ! brew list ruby >/dev/null 2>&1; then
+  brew install ruby
+else
+  echo "Ruby already installed by Homebrew"
+fi
 echo "Ruby install succeeded"
 
-ruby_bin="$HOME/.local/share/mise/installs/ruby/$ruby_version/bin"
+ruby_bin="$(brew --prefix ruby)/bin"
 [[ -d "$ruby_bin" ]] || fail "Ruby bin directory does not exist: $ruby_bin"
 
 export PATH="$ruby_bin:$PATH"
@@ -94,6 +96,7 @@ fi
 
 echo "Ruby version check started"
 ruby -v
+ruby -rsocket -e 'puts "Ruby socket library check succeeded"'
 echo "Ruby version check succeeded"
 
 echo "Bundler install started"
