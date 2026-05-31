@@ -124,9 +124,14 @@ def uses_installed_demo_signing_assets?
 end
 
 def installed_demo_signing_options(team_id)
+  profile_name = required_env("CICD_DEMO_PROVISIONING_PROFILE_SPECIFIER")
+
   {
     archive_xcargs: [
-      "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}"
+      "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}",
+      "CODE_SIGN_STYLE=Manual",
+      "CODE_SIGN_IDENTITY=#{Shellwords.escape("Apple Distribution")}",
+      "PROVISIONING_PROFILE_SPECIFIER=#{Shellwords.escape(profile_name)}"
     ].join(" "),
     export_xcargs: ""
   }
@@ -178,6 +183,7 @@ def update_app_target_signing_settings(project_path:, product_name:, team_id:, p
   UI.user_error!("Could not find app target build settings for product: #{product_name}") unless changed
 
   File.write(pbxproj_path, content)
+  verify_app_target_signing_settings!(pbxproj_path, product_name, profile_name)
 end
 
 def app_product_settings?(settings, product_name)
@@ -205,6 +211,23 @@ def upsert_signing_settings(settings, team_id, profile_name)
   end
 
   settings
+end
+
+def verify_app_target_signing_settings!(pbxproj_path, product_name, profile_name)
+  content = File.read(pbxproj_path)
+  matching_blocks = content.scan(/buildSettings = \{\n(.*?)\n\t\t\t\};/m).flatten.select do |settings|
+    app_product_settings?(settings, product_name)
+  end
+
+  UI.user_error!("Could not verify app target build settings for product: #{product_name}") if matching_blocks.empty?
+
+  invalid_block = matching_blocks.find do |settings|
+    !settings.include?("CODE_SIGN_STYLE = Manual;") ||
+      !settings.include?("CODE_SIGN_IDENTITY = \"Apple Distribution\";") ||
+      !settings.include?("PROVISIONING_PROFILE_SPECIFIER = \"#{profile_name}\";")
+  end
+
+  UI.user_error!("Failed to apply manual demo signing settings for #{product_name}") if invalid_block
 end
 
 def upload_to_testflight_release(ipa_path)
