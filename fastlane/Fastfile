@@ -2,6 +2,8 @@ require "base64"
 require "fileutils"
 require "shellwords"
 
+PROJECT_ROOT = File.expand_path("..", __dir__)
+
 default_platform(:ios)
 
 platform :ios do
@@ -146,7 +148,8 @@ def configure_installed_demo_signing!(scheme)
 end
 
 def xcodeproj_path_for_scheme(scheme)
-  scheme_path = Dir.glob("Projects/**/*.xcodeproj/xcshareddata/xcschemes/#{scheme}.xcscheme").first
+  scheme_glob = File.join(PROJECT_ROOT, "Projects/**/*.xcodeproj/xcshareddata/xcschemes/#{scheme}.xcscheme")
+  scheme_path = Dir.glob(scheme_glob).first
   UI.user_error!("Shared scheme does not exist: #{scheme}") if scheme_path.to_s.empty?
 
   scheme_path.sub(%r{/xcshareddata/xcschemes/#{Regexp.escape(scheme)}\.xcscheme\z}, "")
