@@ -18,7 +18,7 @@ platform :ios do
     export_method = export_method_for(distribution_type)
     signing_options = signing_options_for(distribution_type)
 
-    setup_ci if ENV["CI"]
+    setup_ci if ENV["CI"] && !uses_installed_demo_signing_assets?
     sync_signing_if_needed(distribution_type)
 
     build_options = {
@@ -96,6 +96,9 @@ end
 
 def automatic_signing_options
   team_id = required_env("APPLE_TEAM_ID")
+
+  return installed_demo_signing_options(team_id) if uses_installed_demo_signing_assets?
+
   key_id = required_env("APP_STORE_CONNECT_API_KEY_KEY_ID")
   issuer_id = required_env("APP_STORE_CONNECT_API_KEY_ISSUER_ID")
   key_path = write_app_store_connect_api_key_file(key_id)
@@ -108,6 +111,21 @@ def automatic_signing_options
       "-authenticationKeyIssuerID #{Shellwords.escape(issuer_id)}",
       "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}",
       "CODE_SIGN_STYLE=Automatic"
+    ].join(" "),
+    export_xcargs: ""
+  }
+end
+
+def uses_installed_demo_signing_assets?
+  signing_mode == "automatic" && ["DEMO", "DESIGN"].include?(ENV["CICD_DEPLOYMENT_KIND"].to_s)
+end
+
+def installed_demo_signing_options(team_id)
+  {
+    archive_xcargs: [
+      "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}",
+      "CODE_SIGN_STYLE=Automatic",
+      "CODE_SIGN_IDENTITY=#{Shellwords.escape("Apple Distribution")}"
     ].join(" "),
     export_xcargs: ""
   }

@@ -79,8 +79,19 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: ci_scripts/github/distribution/setup_ruby.sh
 
-      - name: Build and distribute app
+      - name: Install demo iOS signing assets
+        id: install-demo-signing-assets
         if: steps.setup-ruby.outcome == 'success'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DEMO_IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.DEMO_IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          DEMO_IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.DEMO_IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          DEMO_IOS_ADHOC_PROFILE_BASE64: ${{ secrets.DEMO_IOS_ADHOC_PROFILE_BASE64 }}
+          DEMO_SIGNING_KEYCHAIN_PASSWORD: ${{ secrets.DEMO_SIGNING_KEYCHAIN_PASSWORD }}
+        run: ci_scripts/github/distribution/install_demo_signing_assets.sh
+
+      - name: Build and distribute app
+        if: steps.setup-ruby.outcome == 'success' && steps.install-demo-signing-assets.outcome == 'success'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           CICD_SIGNING_MODE: automatic
