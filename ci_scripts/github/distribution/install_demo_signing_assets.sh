@@ -116,7 +116,9 @@ decode_base64 "$DEMO_IOS_ADHOC_PROFILE_BASE64" "$profile_path"
 
 security cms -D -i "$profile_path" > "$profile_plist_path"
 profile_uuid="$(/usr/libexec/PlistBuddy -c 'Print UUID' "$profile_plist_path")"
+profile_name="$(/usr/libexec/PlistBuddy -c 'Print Name' "$profile_plist_path")"
 [[ -n "$profile_uuid" ]] || fail "failed to read provisioning profile UUID"
+[[ -n "$profile_name" ]] || fail "failed to read provisioning profile name"
 
 security create-keychain -p "$DEMO_SIGNING_KEYCHAIN_PASSWORD" "$keychain_path"
 security set-keychain-settings -lut 21600 "$keychain_path"
@@ -140,5 +142,13 @@ security set-key-partition-list \
 mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
 cp "$profile_path" "$HOME/Library/MobileDevice/Provisioning Profiles/${profile_uuid}.mobileprovision"
 
+if [[ -n "${GITHUB_ENV:-}" ]]; then
+  {
+    printf 'CICD_DEMO_PROVISIONING_PROFILE_SPECIFIER=%s\n' "$profile_name"
+    printf 'CICD_DEMO_PROVISIONING_PROFILE_UUID=%s\n' "$profile_uuid"
+  } >> "$GITHUB_ENV"
+fi
+
 echo "Demo signing asset install succeeded"
 echo "Installed provisioning profile UUID: $profile_uuid"
+echo "Installed provisioning profile name: $profile_name"
