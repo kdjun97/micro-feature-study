@@ -124,14 +124,9 @@ def uses_installed_demo_signing_assets?
 end
 
 def installed_demo_signing_options(team_id)
-  profile_name = required_env("CICD_DEMO_PROVISIONING_PROFILE_SPECIFIER")
-
   {
     archive_xcargs: [
-      "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}",
-      "CODE_SIGN_STYLE=Manual",
-      "CODE_SIGN_IDENTITY=#{Shellwords.escape("Apple Distribution")}",
-      "PROVISIONING_PROFILE_SPECIFIER=#{Shellwords.escape(profile_name)}"
+      "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}"
     ].join(" "),
     export_xcargs: ""
   }
