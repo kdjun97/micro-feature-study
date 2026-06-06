@@ -20,16 +20,17 @@
 
 ### 배포 방식
 
-| Tag prefix | Scheme | Environment | Distribution |
-| --- | --- | --- | --- |
-| `dev/*` | `MicroFeatureStudy-DEV` | `DEV` | TestFlight |
-| `prod/*` | `MicroFeatureStudy` | `PROD` | TestFlight |
-| `demo/{DemoScheme}/*` | `{DemoScheme}` | `DEV` | Firebase App Distribution |
-| `design/*` | `DesignSystemDemo` | `DEV` | Firebase App Distribution |
+| Tag prefix | Scheme | Environment | Distribution | Signing |
+| --- | --- | --- | --- | --- |
+| `dev/*` | `MicroFeatureStudy-DEV` | `DEV` | TestFlight | Manual App Store profile |
+| `prod/*` | `MicroFeatureStudy` | `PROD` | TestFlight | Manual App Store profile |
+| `demo/{DemoScheme}/*` | `{DemoScheme}` | `DEV` | Firebase App Distribution | Manual Ad Hoc profile |
+| `design/*` | `DesignSystemDemo` | `DEV` | Firebase App Distribution | Manual Ad Hoc profile |
 
 - `dev`, `prod` 앱은 App Store Connect에 업로드 후 TestFlight로 배포
 - 각 feature demo 앱은 Firebase App Distribution으로 배포
 - DesignSystem demo 앱도 Firebase App Distribution으로 배포
+- CI에서 certificate와 provisioning profile을 설치하고 manual signing으로 빌드
 
 ### Tag 규칙
 
@@ -60,12 +61,13 @@ design/1.0.0-202605281230
 
 - 배포 태그 push 감지
 - 태그 검증 및 CI/CD 환경 결정
-- XCConfig, Firebase, Tuist, Ruby 환경 준비
+- XCConfig, Firebase, Tuist, Ruby, signing asset 준비
 - Fastlane `ios cicd` lane 실행
 - 배포 대상에 따라 TestFlight 또는 Firebase App Distribution 업로드
 
 ### Fastlane 배포 처리
 
+- 빌드 전 원격 배포처의 최신 build number를 조회하고 `+1` 값을 `CFBundleVersion`에 반영
 - `appstore`: `upload_to_testflight`로 TestFlight 업로드
 - `firebase`: `firebase_app_distribution`으로 Firebase App Distribution 배포
 
@@ -73,3 +75,4 @@ design/1.0.0-202605281230
 
 - CI/CD 시작, 실패, 성공 상태를 Discord webhook으로 전송
 - 실패 시 실패한 step과 reason을 Discord로 전송
+- `dev`, `prod` 성공 알림은 TestFlight 업로드 성공 후 전송
