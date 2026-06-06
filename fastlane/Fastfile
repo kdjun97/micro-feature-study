@@ -13,7 +13,8 @@ platform :ios do
     deployment_kind = required_env("CICD_DEPLOYMENT_KIND")
     distribution_type = required_env("CICD_DISTRIBUTION_TYPE")
     version = required_env("CICD_VERSION")
-    build_number = ENV["CICD_BUILD_NUMBER"].to_s
+    fallback_build_number = ENV["CICD_BUILD_NUMBER"].to_s
+    info_plist = required_env("CICD_INFO_PLIST")
 
     output_directory = ENV.fetch("CICD_OUTPUT_DIRECTORY", "build/#{deployment_kind.downcase}")
     output_name = "#{scheme}-#{version}.ipa"
@@ -23,6 +24,16 @@ platform :ios do
     setup_ci if ENV["CI"] && !uses_installed_signing_assets?
     sync_signing_if_needed(distribution_type)
     configure_installed_signing!(scheme) if uses_installed_signing_assets?
+    build_number = next_build_number_for(
+      distribution_type: distribution_type,
+      version: version,
+      fallback_build_number: fallback_build_number
+    )
+    configure_info_plist_version!(
+      info_plist: info_plist,
+      version: version,
+      build_number: build_number
+    )
 
     build_options = {
       workspace: "MicroFeatureStudy.xcworkspace",
@@ -57,6 +68,72 @@ def required_env(name)
   value = ENV[name].to_s
   UI.user_error!("Missing required environment variable: #{name}") if value.empty?
   value
+end
+
+def configure_info_plist_version!(info_plist:, version:, build_number:)
+  info_plist_path = File.expand_path(info_plist, PROJECT_ROOT)
+  UI.user_error!("Info.plist does not exist: #{info_plist}") unless File.exist?(info_plist_path)
+
+  UI.message("Configuring #{info_plist} version #{version} (#{build_number})")
+
+  set_plist_value!(info_plist_path, "CFBundleShortVersionString", version)
+  set_plist_value!(info_plist_path, "CFBundleVersion", build_number)
+end
+
+def set_plist_value!(plist_path, key, value)
+  system("/usr/libexec/PlistBuddy", "-c", "Set :#{key} #{value}", plist_path) ||
+    UI.user_error!("Failed to set #{key} in #{plist_path}")
+end
+
+def next_build_number_for(distribution_type:, version:, fallback_build_number:)
+  local_build_number = numeric_build_number(fallback_build_number)
+
+  latest_build_number = case distribution_type
+                        when "appstore"
+                          latest_testflight_uploaded_build_number(version)
+                        when "firebase"
+                          latest_firebase_uploaded_build_number
+                        else
+                          UI.user_error!("Unsupported distribution type: #{distribution_type}")
+                        end
+
+  next_build_number = [latest_build_number, local_build_number].compact.max.to_i + 1
+  UI.message("Resolved next build number: #{next_build_number} (latest uploaded: #{latest_build_number || "none"}, local: #{local_build_number || "none"})")
+  next_build_number.to_s
+end
+
+def numeric_build_number(value)
+  value = value.to_s
+  return nil if value.empty?
+  UI.user_error!("CFBundleVersion must be numeric: #{value}") unless value.match?(/\A[0-9]+\z/)
+
+  value.to_i
+end
+
+def latest_testflight_uploaded_build_number(version)
+  bundle_identifier = required_env("CICD_PROVISIONING_PROFILE_BUNDLE_IDENTIFIER")
+
+  latest_testflight_build_number(
+    api_key: app_store_connect_api_key_options,
+    app_identifier: bundle_identifier,
+    version: version,
+    initial_build_number: 0
+  ).to_i
+rescue => error
+  UI.message("No TestFlight build number resolved for #{version}: #{error.message}")
+  nil
+end
+
+def latest_firebase_uploaded_build_number
+  latest_release = firebase_app_distribution_get_latest_release(
+    app: firebase_app_id_for_current_target,
+    firebase_cli_token: required_env("FIREBASE_TOKEN")
+  )
+
+  numeric_build_number(latest_release[:buildVersion])
+rescue => error
+  UI.message("No Firebase App Distribution build number resolved: #{error.message}")
+  nil
 end
 
 def export_method_for(distribution_type)
@@ -263,18 +340,22 @@ def verify_app_target_signing_settings!(pbxproj_path, product_name, profile_name
 end
 
 def upload_to_testflight_release(ipa_path)
-  api_key = app_store_connect_api_key(
-    key_id: required_env("APP_STORE_CONNECT_API_KEY_KEY_ID"),
-    issuer_id: required_env("APP_STORE_CONNECT_API_KEY_ISSUER_ID"),
-    key_content: required_env("APP_STORE_CONNECT_API_KEY_KEY"),
-    is_key_content_base64: app_store_connect_key_base64?,
-    in_house: false
-  )
+  api_key = app_store_connect_api_key_options
 
   upload_to_testflight(
     api_key: api_key,
     ipa: ipa_path,
     skip_waiting_for_build_processing: true
+  )
+end
+
+def app_store_connect_api_key_options
+  app_store_connect_api_key(
+    key_id: required_env("APP_STORE_CONNECT_API_KEY_KEY_ID"),
+    issuer_id: required_env("APP_STORE_CONNECT_API_KEY_ISSUER_ID"),
+    key_content: required_env("APP_STORE_CONNECT_API_KEY_KEY"),
+    is_key_content_base64: app_store_connect_key_base64?,
+    in_house: false
   )
 end
 
