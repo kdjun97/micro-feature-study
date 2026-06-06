@@ -16,12 +16,12 @@ USAGE
 notify_failure() {
   local message="$1"
 
-  echo "Demo signing asset install failed"
+  echo "Signing asset install failed"
   echo "Reason: $message" >&2
 
   ci_scripts/github/webhook/send_discord.sh \
     --status failure \
-    --message "Demo 서명 자산 설치에 실패했어요: ${message}" \
+    --message "서명 자산 설치에 실패했어요: ${message}" \
     --step install-demo-signing-assets || true
 }
 
@@ -46,7 +46,7 @@ require_env() {
   local name="$1"
   local value="${!name:-}"
 
-  [[ -n "$value" ]] || fail "required demo signing secret/env is missing: $name"
+  [[ -n "$value" ]] || fail "required signing secret/env is missing: $name"
 }
 
 decode_base64() {
@@ -59,6 +59,8 @@ decode_base64() {
 
 deployment_kind="${CICD_DEPLOYMENT_KIND:-}"
 dry_run=false
+profile_secret_name=""
+profile_file_name=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -77,48 +79,61 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$deployment_kind" in
+  DEV)
+    profile_secret_name="DEV_IOS_APPSTORE_PROFILE_BASE64"
+    profile_file_name="dev_appstore"
+    ;;
+  PROD)
+    profile_secret_name="PROD_IOS_APPSTORE_PROFILE_BASE64"
+    profile_file_name="prod_appstore"
+    ;;
   DEMO|DESIGN)
+    profile_secret_name="DEMO_IOS_ADHOC_PROFILE_BASE64"
+    profile_file_name="demo_adhoc"
     ;;
   *)
-    echo "Demo signing asset install skipped"
-    echo "Reason: deployment_kind=${deployment_kind:-unknown} does not use demo Ad Hoc signing assets"
+    echo "Signing asset install skipped"
+    echo "Reason: deployment_kind=${deployment_kind:-unknown} does not use installed signing assets"
     exit 0
     ;;
 esac
 
-echo "Demo signing asset install started"
+echo "Signing asset install started"
 trap 'handle_unexpected_failure "$LINENO" "$BASH_COMMAND"' ERR
 
 if [[ "$dry_run" == true ]]; then
-  echo "Demo signing asset install dry-run"
+  echo "Signing asset install dry-run"
   echo "deployment_kind=$deployment_kind"
   echo "certificate_secret=DEMO_IOS_DISTRIBUTION_CERTIFICATE_BASE64"
-  echo "profile_secret=DEMO_IOS_ADHOC_PROFILE_BASE64"
+  echo "profile_secret=$profile_secret_name"
   echo "keychain_secret=DEMO_SIGNING_KEYCHAIN_PASSWORD"
   exit 0
 fi
 
 require_env "DEMO_IOS_DISTRIBUTION_CERTIFICATE_BASE64"
 require_env "DEMO_IOS_DISTRIBUTION_CERTIFICATE_PASSWORD"
-require_env "DEMO_IOS_ADHOC_PROFILE_BASE64"
+require_env "$profile_secret_name"
 require_env "DEMO_SIGNING_KEYCHAIN_PASSWORD"
 
-signing_dir="${RUNNER_TEMP:-build/signing}/demo-signing"
-certificate_path="$signing_dir/demo_distribution.p12"
-profile_path="$signing_dir/demo_adhoc.mobileprovision"
-profile_plist_path="$signing_dir/demo_adhoc.plist"
-keychain_path="$signing_dir/demo_signing.keychain-db"
+signing_dir="${RUNNER_TEMP:-build/signing}/ios-signing"
+certificate_path="$signing_dir/apple_distribution.p12"
+profile_path="$signing_dir/${profile_file_name}.mobileprovision"
+profile_plist_path="$signing_dir/${profile_file_name}.plist"
+keychain_path="$signing_dir/ios_signing.keychain-db"
 
 mkdir -p "$signing_dir"
 
 decode_base64 "$DEMO_IOS_DISTRIBUTION_CERTIFICATE_BASE64" "$certificate_path"
-decode_base64 "$DEMO_IOS_ADHOC_PROFILE_BASE64" "$profile_path"
+decode_base64 "${!profile_secret_name}" "$profile_path"
 
 security cms -D -i "$profile_path" > "$profile_plist_path"
 profile_uuid="$(/usr/libexec/PlistBuddy -c 'Print UUID' "$profile_plist_path")"
 profile_name="$(/usr/libexec/PlistBuddy -c 'Print Name' "$profile_plist_path")"
+application_identifier="$(/usr/libexec/PlistBuddy -c 'Print Entitlements:application-identifier' "$profile_plist_path")"
+profile_bundle_identifier="${application_identifier#*.}"
 [[ -n "$profile_uuid" ]] || fail "failed to read provisioning profile UUID"
 [[ -n "$profile_name" ]] || fail "failed to read provisioning profile name"
+[[ -n "$profile_bundle_identifier" ]] || fail "failed to read provisioning profile bundle identifier"
 
 security create-keychain -p "$DEMO_SIGNING_KEYCHAIN_PASSWORD" "$keychain_path"
 security set-keychain-settings -lut 21600 "$keychain_path"
@@ -144,11 +159,18 @@ cp "$profile_path" "$HOME/Library/MobileDevice/Provisioning Profiles/${profile_u
 
 if [[ -n "${GITHUB_ENV:-}" ]]; then
   {
-    printf 'CICD_DEMO_PROVISIONING_PROFILE_SPECIFIER=%s\n' "$profile_name"
-    printf 'CICD_DEMO_PROVISIONING_PROFILE_UUID=%s\n' "$profile_uuid"
+    printf 'CICD_PROVISIONING_PROFILE_SPECIFIER=%s\n' "$profile_name"
+    printf 'CICD_PROVISIONING_PROFILE_UUID=%s\n' "$profile_uuid"
+    printf 'CICD_PROVISIONING_PROFILE_BUNDLE_IDENTIFIER=%s\n' "$profile_bundle_identifier"
+
+    if [[ "$deployment_kind" == "DEMO" || "$deployment_kind" == "DESIGN" ]]; then
+      printf 'CICD_DEMO_PROVISIONING_PROFILE_SPECIFIER=%s\n' "$profile_name"
+      printf 'CICD_DEMO_PROVISIONING_PROFILE_UUID=%s\n' "$profile_uuid"
+    fi
   } >> "$GITHUB_ENV"
 fi
 
-echo "Demo signing asset install succeeded"
+echo "Signing asset install succeeded"
 echo "Installed provisioning profile UUID: $profile_uuid"
 echo "Installed provisioning profile name: $profile_name"
+echo "Installed provisioning profile bundle id: $profile_bundle_identifier"

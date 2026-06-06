@@ -79,7 +79,7 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: ci_scripts/github/distribution/setup_ruby.sh
 
-      - name: Install demo iOS signing assets
+      - name: Install iOS signing assets
         id: install-demo-signing-assets
         if: steps.setup-ruby.outcome == 'success'
         env:
@@ -87,6 +87,8 @@ jobs:
           DEMO_IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.DEMO_IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
           DEMO_IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.DEMO_IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
           DEMO_IOS_ADHOC_PROFILE_BASE64: ${{ secrets.DEMO_IOS_ADHOC_PROFILE_BASE64 }}
+          DEV_IOS_APPSTORE_PROFILE_BASE64: ${{ secrets.DEV_IOS_APPSTORE_PROFILE_BASE64 }}
+          PROD_IOS_APPSTORE_PROFILE_BASE64: ${{ secrets.PROD_IOS_APPSTORE_PROFILE_BASE64 }}
           DEMO_SIGNING_KEYCHAIN_PASSWORD: ${{ secrets.DEMO_SIGNING_KEYCHAIN_PASSWORD }}
         run: ci_scripts/github/distribution/install_demo_signing_assets.sh
 
@@ -94,7 +96,6 @@ jobs:
         if: steps.setup-ruby.outcome == 'success' && steps.install-demo-signing-assets.outcome == 'success'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          CICD_SIGNING_MODE: automatic
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}

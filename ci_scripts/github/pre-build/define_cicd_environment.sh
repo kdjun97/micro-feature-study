@@ -57,6 +57,7 @@ version=""
 build_number=""
 deployment_kind=""
 demo_target=""
+signing_mode=""
 
 infer_from_ref() {
   local ref="$1"
@@ -68,6 +69,7 @@ infer_from_ref() {
       environment="DEV"
       distribution_type="appstore"
       deployment_kind="DEV"
+      signing_mode="manual"
       version_part="${ref#dev/}"
       tag_version="${version_part%%-*}"
       ;;
@@ -76,6 +78,7 @@ infer_from_ref() {
       environment="PROD"
       distribution_type="appstore"
       deployment_kind="PROD"
+      signing_mode="manual"
       version_part="${ref#prod/}"
       tag_version="${version_part%%-*}"
       ;;
@@ -87,6 +90,7 @@ infer_from_ref() {
       environment="DEV"
       distribution_type="firebase"
       deployment_kind="DEMO"
+      signing_mode="manual"
       version_part="${ref#demo/*/}"
       tag_version="${version_part%%-*}"
       ;;
@@ -96,6 +100,7 @@ infer_from_ref() {
       distribution_type="firebase"
       deployment_kind="DESIGN"
       demo_target="DesignSystemDemo"
+      signing_mode="manual"
       version_part="${ref#design/}"
       tag_version="${version_part%%-*}"
       ;;
@@ -174,6 +179,7 @@ require_value "CICD_SCHEME" "$scheme"
 require_value "CICD_ENVIRONMENT" "$environment"
 require_value "CICD_DISTRIBUTION_TYPE" "$distribution_type"
 require_value "CICD_DEPLOYMENT_KIND" "$deployment_kind"
+require_value "CICD_SIGNING_MODE" "$signing_mode"
 
 if [[ -n "$info_plist" && -f "$info_plist" ]]; then
   version="$(read_plist_value "$info_plist" "CFBundleShortVersionString")"
@@ -195,6 +201,7 @@ write_env "CICD_SCHEME" "$scheme"
 write_env "CICD_ENVIRONMENT" "$environment"
 write_env "CICD_DISTRIBUTION_TYPE" "$distribution_type"
 write_env "CICD_DEPLOYMENT_KIND" "$deployment_kind"
+write_env "CICD_SIGNING_MODE" "$signing_mode"
 write_env "CICD_DEMO_TARGET" "$demo_target"
 write_env "CICD_INFO_PLIST" "$info_plist"
 write_env "CICD_VERSION" "$version"
@@ -202,4 +209,4 @@ write_env "CICD_BUILD_NUMBER" "$build_number"
 write_env "CICD_VERSION_DISPLAY" "$version_display"
 
 echo "Define CI/CD environment succeeded"
-echo "Resolved CI/CD environment: branch=$branch, kind=$deployment_kind, scheme=$scheme, environment=$environment, distribution=$distribution_type, demo_target=${demo_target:-none}, version=$version_display"
+echo "Resolved CI/CD environment: branch=$branch, kind=$deployment_kind, scheme=$scheme, environment=$environment, distribution=$distribution_type, signing=$signing_mode, demo_target=${demo_target:-none}, version=$version_display"

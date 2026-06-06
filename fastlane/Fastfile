@@ -20,9 +20,9 @@ platform :ios do
     export_method = export_method_for(distribution_type)
     signing_options = signing_options_for(distribution_type)
 
-    setup_ci if ENV["CI"] && !uses_installed_demo_signing_assets?
+    setup_ci if ENV["CI"] && !uses_installed_signing_assets?
     sync_signing_if_needed(distribution_type)
-    configure_installed_demo_signing!(scheme) if uses_installed_demo_signing_assets?
+    configure_installed_signing!(scheme) if uses_installed_signing_assets?
 
     build_options = {
       workspace: "MicroFeatureStudy.xcworkspace",
@@ -36,6 +36,7 @@ platform :ios do
     }
     build_options[:xcargs] = signing_options[:archive_xcargs] unless signing_options[:archive_xcargs].empty?
     build_options[:export_xcargs] = signing_options[:export_xcargs] unless signing_options[:export_xcargs].empty?
+    build_options[:export_options] = signing_options[:export_options] if signing_options[:export_options]
 
     ipa_path = build_ios_app(build_options)
 
@@ -87,10 +88,17 @@ def signing_options_for(_distribution_type)
   case signing_mode
   when "automatic"
     automatic_signing_options
+  when "manual"
+    installed_signing_options(
+      team_id: required_env("APPLE_TEAM_ID"),
+      profile_name: required_env("CICD_PROVISIONING_PROFILE_SPECIFIER"),
+      bundle_identifier: required_env("CICD_PROVISIONING_PROFILE_BUNDLE_IDENTIFIER")
+    )
   when "match"
     {
       archive_xcargs: "",
-      export_xcargs: ""
+      export_xcargs: "",
+      export_options: nil
     }
   else
     UI.user_error!("Unsupported signing mode: #{signing_mode}")
@@ -99,8 +107,6 @@ end
 
 def automatic_signing_options
   team_id = required_env("APPLE_TEAM_ID")
-
-  return installed_demo_signing_options(team_id) if uses_installed_demo_signing_assets?
 
   key_id = required_env("APP_STORE_CONNECT_API_KEY_KEY_ID")
   issuer_id = required_env("APP_STORE_CONNECT_API_KEY_ISSUER_ID")
@@ -115,33 +121,42 @@ def automatic_signing_options
       "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}",
       "CODE_SIGN_STYLE=Automatic"
     ].join(" "),
-    export_xcargs: ""
+    export_xcargs: "",
+    export_options: nil
   }
 end
 
-def uses_installed_demo_signing_assets?
-  signing_mode == "automatic" && ["DEMO", "DESIGN"].include?(ENV["CICD_DEPLOYMENT_KIND"].to_s)
+def uses_installed_signing_assets?
+  signing_mode == "manual"
 end
 
-def installed_demo_signing_options(team_id)
+def installed_signing_options(team_id:, profile_name:, bundle_identifier:)
   {
     archive_xcargs: [
       "DEVELOPMENT_TEAM=#{Shellwords.escape(team_id)}"
     ].join(" "),
-    export_xcargs: ""
+    export_xcargs: "",
+    export_options: {
+      signingStyle: "manual",
+      teamID: team_id,
+      provisioningProfiles: {
+        bundle_identifier => profile_name
+      }
+    }
   }
 end
 
-def configure_installed_demo_signing!(scheme)
+def configure_installed_signing!(scheme)
   team_id = required_env("APPLE_TEAM_ID")
-  profile_name = required_env("CICD_DEMO_PROVISIONING_PROFILE_SPECIFIER")
+  profile_name = required_env("CICD_PROVISIONING_PROFILE_SPECIFIER")
   project_path = xcodeproj_path_for_scheme(scheme)
+  target_name = build_target_name_for_scheme(scheme)
 
-  UI.message("Configuring #{scheme} for installed demo signing assets")
+  UI.message("Configuring #{target_name} for installed signing assets")
 
   update_app_target_signing_settings(
     project_path: project_path,
-    product_name: scheme,
+    product_name: target_name,
     team_id: team_id,
     profile_name: profile_name
   )
@@ -153,6 +168,23 @@ def xcodeproj_path_for_scheme(scheme)
   UI.user_error!("Shared scheme does not exist: #{scheme}") if scheme_path.to_s.empty?
 
   scheme_path.sub(%r{/xcshareddata/xcschemes/#{Regexp.escape(scheme)}\.xcscheme\z}, "")
+end
+
+def xcscheme_path_for_scheme(scheme)
+  scheme_glob = File.join(PROJECT_ROOT, "Projects/**/*.xcodeproj/xcshareddata/xcschemes/#{scheme}.xcscheme")
+  scheme_path = Dir.glob(scheme_glob).first
+  UI.user_error!("Shared scheme does not exist: #{scheme}") if scheme_path.to_s.empty?
+
+  scheme_path
+end
+
+def build_target_name_for_scheme(scheme)
+  scheme_path = xcscheme_path_for_scheme(scheme)
+  content = File.read(scheme_path)
+  target_name = content[/BlueprintName = "([^"]+)"/, 1]
+  UI.user_error!("Could not resolve build target for scheme: #{scheme}") if target_name.to_s.empty?
+
+  target_name
 end
 
 def update_app_target_signing_settings(project_path:, product_name:, team_id:, profile_name:)
@@ -182,11 +214,14 @@ def update_app_target_signing_settings(project_path:, product_name:, team_id:, p
 end
 
 def app_product_settings?(settings, product_name)
-  [
+  explicit_product_name = [
     "PRODUCT_NAME = #{product_name};",
-    "PRODUCT_NAME = \"#{product_name}\";",
-    "PRODUCT_NAME = \"$(TARGET_NAME)\";"
-  ].any? { |line| settings.include?(line) } && settings.include?("BUNDLE_NAME = #{product_name};")
+    "PRODUCT_NAME = \"#{product_name}\";"
+  ].any? { |line| settings.include?(line) }
+  target_name_product = settings.include?("PRODUCT_NAME = \"$(TARGET_NAME)\";") &&
+    settings.include?("BUNDLE_NAME = #{product_name};")
+
+  explicit_product_name || target_name_product
 end
 
 def upsert_signing_settings(settings, team_id, profile_name)
