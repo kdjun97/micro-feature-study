@@ -1,81 +1,84 @@
 import XCTest
-import CoreAuthTesting
+import RxSwift
 import CoreNetworkInterface
 import CoreNetworkTesting
 @testable import SignIn
 import SignInInterface
 import SignInTesting
 
-@MainActor
-final class SignInViewModelTests: XCTestCase {
-    func testInitialStateShowsNormalStatus() {
-        let useCase = MockSignInUseCase.success()
-        let router = MockSignInRouter()
-        let viewModel = SignInViewModel(
-            useCase: useCase,
-            coreAuthUseCase: MockCoreAuthUseCase.success(),
-            router: router
-        )
+final class SignInReactorTests: XCTestCase {
+    private var disposeBag: DisposeBag!
 
-        XCTAssertFalse(viewModel.isLoading)
-        XCTAssertEqual(viewModel.errorMessage, "상태: 노말")
-        XCTAssertEqual(viewModel.userProfileMessage, "유저: 없음")
+    override func setUp() {
+        super.setUp()
+        disposeBag = DisposeBag()
     }
 
-    func testSignInButtonShowsLoadingAndRoutesToSuccessWhenUseCaseSucceeds() async {
-        let useCase = MockSignInUseCase.success()
-        let router = MockSignInRouter()
-        let viewModel = SignInViewModel(
-            useCase: useCase,
-            coreAuthUseCase: MockCoreAuthUseCase.success(),
-            router: router
-        )
+    override func tearDown() {
+        disposeBag = nil
+        super.tearDown()
+    }
 
-        let task = Task {
-            await viewModel.signInButtonTapped()
+    func testMainButtonTappedEmitsChangeMainRoute() {
+        let reactor = SignInReactor()
+        var receivedRoutes: [SignInReactor.Route] = []
+
+        reactor.route
+            .subscribe(onNext: { receivedRoutes.append($0) })
+            .disposed(by: disposeBag)
+
+        reactor.mutate(action: .mainbuttonTapped)
+            .subscribe()
+            .disposed(by: disposeBag)
+
+        XCTAssertEqual(receivedRoutes, [.changeMain])
+    }
+
+    func testKakaoButtonTappedEmitsPushSignInDetailRoute() {
+        let reactor = SignInReactor()
+        var receivedRoutes: [SignInReactor.Route] = []
+
+        reactor.route
+            .subscribe(onNext: { receivedRoutes.append($0) })
+            .disposed(by: disposeBag)
+
+        reactor.mutate(action: .kakaoButtonTapped)
+            .subscribe()
+            .disposed(by: disposeBag)
+
+        XCTAssertEqual(receivedRoutes, [.pushSignInDetail])
+    }
+
+    func testAppleButtonTappedDoesNotEmitRoute() {
+        let reactor = SignInReactor()
+        var receivedRoutes: [SignInReactor.Route] = []
+
+        reactor.route
+            .subscribe(onNext: { receivedRoutes.append($0) })
+            .disposed(by: disposeBag)
+
+        reactor.mutate(action: .appleButtonTapped)
+            .subscribe()
+            .disposed(by: disposeBag)
+
+        XCTAssertTrue(receivedRoutes.isEmpty)
+    }
+}
+
+final class SignInDetailViewModelTests: XCTestCase {
+    func testBackButtonTappedEmitsPop() {
+        let viewModel = SignInDetailViewModel()
+        var didEmitPop = false
+
+        viewModel.onOutput = { output in
+            if case .onPop = output {
+                didEmitPop = true
+            }
         }
 
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        viewModel.send(.backButtonTapped)
 
-        XCTAssertTrue(viewModel.isLoading)
-        XCTAssertEqual(viewModel.errorMessage, "상태: 로딩")
-
-        await task.value
-
-        XCTAssertFalse(viewModel.isLoading)
-        XCTAssertEqual(viewModel.errorMessage, "상태: 노말")
-        XCTAssertEqual(viewModel.userProfileMessage, "유저: Jumy")
-        XCTAssertEqual(router.routes, [.signInSucceeded])
-    }
-
-    func testSignInButtonShowsFailureMessageAndDoesNotRouteWhenUseCaseFails() async {
-        let useCase = MockSignInUseCase.failure()
-        let router = MockSignInRouter()
-        let viewModel = SignInViewModel(
-            useCase: useCase,
-            coreAuthUseCase: MockCoreAuthUseCase.success(),
-            router: router
-        )
-
-        await viewModel.signInButtonTapped()
-
-        XCTAssertFalse(viewModel.isLoading)
-        XCTAssertEqual(viewModel.errorMessage, "상태: 로그인 실패")
-        XCTAssertEqual(router.routes, [])
-    }
-
-    func testDashboardButtonRoutesToDashboard() {
-        let useCase = MockSignInUseCase.success()
-        let router = MockSignInRouter()
-        let viewModel = SignInViewModel(
-            useCase: useCase,
-            coreAuthUseCase: MockCoreAuthUseCase.success(),
-            router: router
-        )
-
-        viewModel.dashboardButtonTapped()
-
-        XCTAssertEqual(router.routes, [.dashboardRequested])
+        XCTAssertTrue(didEmitPop)
     }
 }
 

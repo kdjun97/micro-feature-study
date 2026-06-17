@@ -18,6 +18,14 @@ extension AppAssembly {
 
 private extension AppAssembly {
     func assembleSignInFeature(in container: Container) {
+        container.register(SignInReactor.self) { _ in
+            SignInReactor()
+        }
+
+        container.register(SignInDetailViewModel.self) { _ in
+            SignInDetailViewModel()
+        }
+
         container.register(SignInRepositoryProtocol.self) { resolver in
             let networkClient: CoreNetworkProtocol = resolver.resolve()
             return SignInRepository(networkClient: networkClient)
@@ -33,7 +41,9 @@ private extension AppAssembly {
             let coreAuthUseCase: CoreAuthInterface = resolver.resolve()
             return SignInBuilder(
                 useCase: useCase,
-                coreAuthUseCase: coreAuthUseCase
+                coreAuthUseCase: coreAuthUseCase,
+                makeSignInReactor: { resolver.resolve() },
+                makeSignInDetailViewModel: { resolver.resolve() }
             )
         }
     }
