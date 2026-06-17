@@ -49,13 +49,20 @@ private extension AppAssembly {
     }
 
     func assembleDashboardFeature(in container: Container) {
+        container.register(HomeViewModel.self) { _ in
+            HomeViewModel()
+        }
+
         container.register(DashboardUseCaseProtocol.self) { _ in
             DashboardUseCase()
         }
 
         container.register(DashboardBuildable.self) { resolver in
             let useCase: DashboardUseCaseProtocol = resolver.resolve()
-            return DashboardBuilder(useCase: useCase)
+            return DashboardBuilder(
+                useCase: useCase,
+                makeHomeViewModel: { resolver.resolve() }
+            )
         }
     }
 

@@ -3,30 +3,49 @@ import XCTest
 import DashboardInterface
 import DashboardTesting
 
-@MainActor
-final class DashboardViewModelTests: XCTestCase {
-    func testInitialTitleUsesUseCaseTitle() {
-        let useCase = MockDashboardUseCase()
-        let router = MockDashboardRouter()
+final class HomeViewModelTests: XCTestCase {
+    func testButtonTappedEmitsPushDetail() {
+        let viewModel = HomeViewModel()
+        var didEmitPushDetail = false
 
-        let viewModel = DashboardViewModel(
-            useCase: useCase,
-            router: router
-        )
+        viewModel.onOutput = { output in
+            if case .onPushDetail = output {
+                didEmitPushDetail = true
+            }
+        }
 
-        XCTAssertEqual(viewModel.title, "Mock Dashboard")
+        viewModel.send(.buttonTapped)
+
+        XCTAssertTrue(didEmitPushDetail)
     }
 
-    func testBackButtonRoutesToBackRequested() {
-        let useCase = MockDashboardUseCase()
-        let router = MockDashboardRouter()
-        let viewModel = DashboardViewModel(
-            useCase: useCase,
-            router: router
-        )
+    func testAlertButtonTappedEmitsAlertCase() {
+        let viewModel = HomeViewModel()
+        var receivedAlertCase: HomeAlertCase?
 
-        viewModel.backButtonTapped()
+        viewModel.onOutput = { output in
+            if case .showAlert(let alertCase) = output {
+                receivedAlertCase = alertCase
+            }
+        }
 
-        XCTAssertEqual(router.routes, [.backRequested])
+        viewModel.send(.alertButtonTapped(.tip))
+
+        XCTAssertEqual(receivedAlertCase, .tip)
+    }
+
+    func testDismissAlertEmitsNilAlert() {
+        let viewModel = HomeViewModel()
+        var didEmitDismiss = false
+
+        viewModel.onOutput = { output in
+            if case .showAlert(let alertCase) = output, alertCase == nil {
+                didEmitDismiss = true
+            }
+        }
+
+        viewModel.send(.dismissAlert)
+
+        XCTAssertTrue(didEmitDismiss)
     }
 }
