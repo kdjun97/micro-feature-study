@@ -10,7 +10,3 @@ struct PreviewApp: App {
         }
     }
 }
-
-#Preview {
-    DesignSystemView()
-}
