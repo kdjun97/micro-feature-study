@@ -1,23 +1,23 @@
-import UIKit
-import Root
 import Main
+import Root
+import UIKit
 
 final class AppCoordinator {
     private let window: UIWindow
-    private let rootCoordinatorBuilder: RootCoordinatorBuildable
-    private let mainCoordinatorBuilder: MainCoordinatorBuildable
+    private let makeRootCoordinator: (RootCoordinatorDelegate) -> RootCoordinator
+    private let makeMainCoordinator: (MainCoordinatorDelegate) -> MainCoordinator
 
     private var rootCoordinator: RootCoordinator?
     private var mainCoordinator: MainCoordinator?
 
     init(
         window: UIWindow,
-        rootCoordinatorBuilder: RootCoordinatorBuildable,
-        mainCoordinatorBuilder: MainCoordinatorBuildable
+        makeRootCoordinator: @escaping (RootCoordinatorDelegate) -> RootCoordinator,
+        makeMainCoordinator: @escaping (MainCoordinatorDelegate) -> MainCoordinator
     ) {
         self.window = window
-        self.rootCoordinatorBuilder = rootCoordinatorBuilder
-        self.mainCoordinatorBuilder = mainCoordinatorBuilder
+        self.makeRootCoordinator = makeRootCoordinator
+        self.makeMainCoordinator = makeMainCoordinator
     }
 
     @MainActor
@@ -31,7 +31,7 @@ private extension AppCoordinator {
     func showRoot(animated: Bool) {
         mainCoordinator = nil
 
-        let coordinator = rootCoordinatorBuilder.makeRootCoordinator(delegate: self)
+        let coordinator = makeRootCoordinator(self)
         rootCoordinator = coordinator
         setRoot(coordinator.navigationController, animated: animated)
         coordinator.start()
@@ -41,7 +41,7 @@ private extension AppCoordinator {
     func showMain(animated: Bool) {
         rootCoordinator = nil
 
-        let coordinator = mainCoordinatorBuilder.makeMainCoordinator(delegate: self)
+        let coordinator = makeMainCoordinator(self)
         mainCoordinator = coordinator
         setRoot(coordinator.navigationController, animated: animated)
         coordinator.start()

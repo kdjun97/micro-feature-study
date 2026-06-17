@@ -4,9 +4,12 @@ import Swinject
 
 extension AppAssembly {
     func assembleRootFlow(in container: Container) {
-        container.register(RootCoordinatorBuildable.self) { resolver in
+        container.register(RootCoordinator.self) { (resolver: Resolver, delegate: RootCoordinatorDelegate) in
             let signInBuilder: SignInBuildable = resolver.resolve()
-            return RootCoordinatorBuilder(signInBuilder: signInBuilder)
+            return RootCoordinator(
+                signInBuilder: signInBuilder,
+                delegate: delegate
+            )
         }
     }
 }

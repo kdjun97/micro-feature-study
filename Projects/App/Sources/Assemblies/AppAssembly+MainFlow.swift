@@ -5,12 +5,13 @@ import Swinject
 
 extension AppAssembly {
     func assembleMainFlow(in container: Container) {
-        container.register(MainCoordinatorBuildable.self) { resolver in
+        container.register(MainCoordinator.self) { (resolver: Resolver, delegate: MainCoordinatorDelegate) in
             let dashboardBuilder: DashboardBuildable = resolver.resolve()
             let detailBuilder: DetailBuildable = resolver.resolve()
-            return MainCoordinatorBuilder(
+            return MainCoordinator(
                 dashboardBuilder: dashboardBuilder,
-                detailBuilder: detailBuilder
+                detailBuilder: detailBuilder,
+                delegate: delegate
             )
         }
     }

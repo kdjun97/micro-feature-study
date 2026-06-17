@@ -6,12 +6,14 @@ import UIKit
 extension AppAssembly {
     func assembleApp(in container: Container) {
         container.register(AppCoordinator.self) { (resolver: Resolver, window: UIWindow) in
-            let rootCoordinatorBuilder: RootCoordinatorBuildable = resolver.resolve()
-            let mainCoordinatorBuilder: MainCoordinatorBuildable = resolver.resolve()
-            return AppCoordinator(
+            AppCoordinator(
                 window: window,
-                rootCoordinatorBuilder: rootCoordinatorBuilder,
-                mainCoordinatorBuilder: mainCoordinatorBuilder
+                makeRootCoordinator: { delegate in
+                    resolver.resolve(argument: delegate)
+                },
+                makeMainCoordinator: { delegate in
+                    resolver.resolve(argument: delegate)
+                }
             )
         }
     }
