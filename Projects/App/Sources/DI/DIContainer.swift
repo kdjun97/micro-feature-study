@@ -15,13 +15,6 @@ final class AppDIContainer {
     }
 }
 
-final class DIContainer {
-    let container: Container
-
-    init(container: Container = Container()) {
-        self.container = container
-    }
-}
 
 extension Resolver {
     func resolve<T>() -> T {
