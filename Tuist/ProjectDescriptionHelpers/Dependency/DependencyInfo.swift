@@ -62,7 +62,12 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
             .microFeature(.Dashboard)
         ],
         .Main: [
-            .microFeature(.Detail)
+            .microFeature(.Dashboard),
+            .microFeature(.Detail),
+            .module(.DesignSystem)
+        ],
+        .DesignSystem: [
+            .external(.SnapKit)
         ]
     ],
     microFeatureDependencies: [
@@ -70,7 +75,11 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
             implementation: [
                 .microFeature(.CoreNetwork),
                 .microFeature(.CoreAuth),
-                .module(.DesignSystem)
+                .module(.DesignSystem),
+                .external(.ReactorKit),
+                .external(.RxSwift),
+                .external(.RxCocoa),
+                .external(.RxRelay)
             ],
             tests: [
                 .microFeatureTesting(.CoreNetwork),
@@ -87,7 +96,7 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
             implementation: [
                 .microFeature(.CoreNetwork),
                 .microFeature(.CoreAuth),
-                .module(.DesignSystem)
+                .module(.DesignSystem),
             ],
             tests: [
                 .microFeatureTesting(.CoreNetwork),

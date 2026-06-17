@@ -18,6 +18,11 @@ public enum Module: Hashable {
 public enum ExternalModule {
     case Alamofire
     case Swinject
+    case SnapKit
+    case ReactorKit
+    case RxSwift
+    case RxCocoa
+    case RxRelay
     
     var name: String {
         switch self {

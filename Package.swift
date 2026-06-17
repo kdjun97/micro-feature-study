@@ -15,6 +15,8 @@ let package = Package(
     name: "MicroFeatureStudy",
     dependencies: [
         .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.10.0"),
-        .package(url: "https://github.com/Swinject/Swinject.git", from: "2.10.0")
+        .package(url: "https://github.com/Swinject/Swinject.git", from: "2.10.0"),
+        .package(url: "https://github.com/SnapKit/SnapKit.git", from: "6.0.0"),
+        .package(url: "https://github.com/ReactorKit/ReactorKit.git", from: "3.2.0")
     ]
 )
