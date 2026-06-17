@@ -13,6 +13,7 @@ public final class RootCoordinator {
         delegate: RootCoordinatorDelegate? = nil
     ) {
         self.navigationController = navigationController
+        navigationController.setNavigationBarHidden(true, animated: false)
         self.signInBuilder = signInBuilder
         self.delegate = delegate
     }
