@@ -1,36 +1,66 @@
-import SwiftUI
+import UIKit
+import DesignSystem
 
-public struct DetailView: View {
-    @StateObject private var viewModel: DetailViewModel
-
-    public init(viewModel: DetailViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+final class DetailViewController: UIViewController {
+    private let viewModel: DetailViewModel
+    
+    deinit {
+        print("❎ DetailViewController deinit!")
     }
 
-    public var body: some View {
-        VStack(spacing: 16) {
-            Text(viewModel.title)
-                .font(.title)
+    init(viewModel: DetailViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+        print("⭕ DetailViewController init!")
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private let headerLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Detail Header"
+        label.font = .systemFont(ofSize: 24, weight: .bold)
+        label.textColor = .label
+        label.textAlignment = .center
+        return label
+    }()
+    
+    private let sheetButton = CustomButton(
+        title: "Sheet 버튼",
+        backgroundColor: .black,
+        foregroundColor: .white
+    )
+    
+    private let tabBarContainer = UIView()
 
-            Text(viewModel.logoutMessage)
-            Text(viewModel.userProfileMessage)
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemBackground
+        
+        setupLayout()
+        sheetButton.addTarget(self, action: #selector(sheetButtonTapped), for: .touchUpInside)
+    }
+    
+    private func setupLayout() {
+        view.addSubview(headerLabel)
+        view.addSubview(sheetButton)
+        headerLabel.translatesAutoresizingMaskIntoConstraints = false
+        sheetButton.translatesAutoresizingMaskIntoConstraints = false
 
-            if viewModel.isLoading {
-                ProgressView()
-            }
-
-            Button("Logout") {
-                Task {
-                    await viewModel.logoutButtonTapped()
-                }
-            }
-            .disabled(viewModel.isLoading)
-        }
-        .padding()
-        .alert("Logout Failed", isPresented: $viewModel.isLogoutFailedAlertPresented) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(viewModel.logoutMessage)
-        }
+        NSLayoutConstraint.activate([
+            headerLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0),
+            headerLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+        
+        NSLayoutConstraint.activate([
+            sheetButton.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 20),
+            sheetButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+    
+    @objc func sheetButtonTapped() {
+        viewModel.send(.sheetButtonTapped)
     }
 }

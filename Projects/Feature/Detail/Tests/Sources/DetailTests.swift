@@ -1,76 +1,24 @@
 import XCTest
-import CoreAuthTesting
 import CoreNetworkInterface
 import CoreNetworkTesting
 @testable import Detail
 import DetailInterface
 import DetailTesting
 
-@MainActor
 final class DetailViewModelTests: XCTestCase {
-    func testInitialTitleUsesUseCaseTitle() {
-        let useCase = MockDetailUseCase(title: "Mock Detail")
-        let router = MockDetailRouter()
+    func testSheetButtonTappedEmitsPresentSheet() {
+        let viewModel = DetailViewModel()
+        var didEmitPresentSheet = false
 
-        let viewModel = DetailViewModel(
-            useCase: useCase,
-            coreAuthUseCase: MockCoreAuthUseCase.success(),
-            router: router
-        )
-
-        XCTAssertEqual(useCase.titleCallCount, 1)
-        XCTAssertEqual(viewModel.title, "Mock Detail")
-        XCTAssertEqual(viewModel.logoutMessage, "상태: 노말")
-        XCTAssertEqual(viewModel.userProfileMessage, "유저: 없음")
-        XCTAssertFalse(viewModel.isLoading)
-        XCTAssertFalse(viewModel.isLogoutFailedAlertPresented)
-        XCTAssertEqual(router.routes, [])
-    }
-
-    func testLogoutButtonShowsLoadingAndRoutesToLogoutWhenUseCaseSucceeds() async {
-        let useCase = MockDetailUseCase(logoutResult: true)
-        let router = MockDetailRouter()
-        let viewModel = DetailViewModel(
-            useCase: useCase,
-            coreAuthUseCase: MockCoreAuthUseCase.success(),
-            router: router
-        )
-
-        let task = Task {
-            await viewModel.logoutButtonTapped()
+        viewModel.onOutput = { output in
+            if case .onPresentSheet = output {
+                didEmitPresentSheet = true
+            }
         }
 
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        viewModel.send(.sheetButtonTapped)
 
-        XCTAssertTrue(viewModel.isLoading)
-        XCTAssertEqual(viewModel.logoutMessage, "상태: 로그아웃 중")
-
-        await task.value
-
-        XCTAssertEqual(useCase.logoutCallCount, 1)
-        XCTAssertFalse(viewModel.isLoading)
-        XCTAssertEqual(viewModel.logoutMessage, "상태: 노말")
-        XCTAssertEqual(viewModel.userProfileMessage, "유저: Jumy")
-        XCTAssertFalse(viewModel.isLogoutFailedAlertPresented)
-        XCTAssertEqual(router.routes, [.logout])
-    }
-
-    func testLogoutButtonShowsFailureAlertAndDoesNotRouteWhenUseCaseFails() async {
-        let useCase = MockDetailUseCase(logoutResult: false)
-        let router = MockDetailRouter()
-        let viewModel = DetailViewModel(
-            useCase: useCase,
-            coreAuthUseCase: MockCoreAuthUseCase.success(),
-            router: router
-        )
-
-        await viewModel.logoutButtonTapped()
-
-        XCTAssertEqual(useCase.logoutCallCount, 1)
-        XCTAssertFalse(viewModel.isLoading)
-        XCTAssertEqual(viewModel.logoutMessage, "상태: 로그아웃 실패")
-        XCTAssertTrue(viewModel.isLogoutFailedAlertPresented)
-        XCTAssertEqual(router.routes, [])
+        XCTAssertTrue(didEmitPresentSheet)
     }
 }
 

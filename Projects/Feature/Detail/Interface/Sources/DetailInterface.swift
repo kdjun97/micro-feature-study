@@ -1,6 +1,7 @@
-import SwiftUI
+import UIKit
 
 public enum DetailRoute: Equatable {
+    case sheet
     case logout
 }
 
@@ -11,7 +12,10 @@ public protocol DetailRouting: AnyObject {
 
 public protocol DetailBuildable {
     @MainActor
-    func makeDetailView(router: DetailRouting) -> AnyView
+    func makeDetailViewController(router: DetailRouting) -> UIViewController
+
+    @MainActor
+    func makeDetailSheetViewController() -> UIViewController
 }
 
 public protocol DetailUseCaseProtocol {

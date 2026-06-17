@@ -67,6 +67,10 @@ private extension AppAssembly {
     }
 
     func assembleDetailFeature(in container: Container) {
+        container.register(DetailViewModel.self) { _ in
+            DetailViewModel()
+        }
+
         container.register(DetailRepositoryProtocol.self) { resolver in
             let networkClient: CoreNetworkProtocol = resolver.resolve()
             return DetailRepository(networkClient: networkClient)
@@ -82,7 +86,8 @@ private extension AppAssembly {
             let coreAuthUseCase: CoreAuthInterface = resolver.resolve()
             return DetailBuilder(
                 useCase: useCase,
-                coreAuthUseCase: coreAuthUseCase
+                coreAuthUseCase: coreAuthUseCase,
+                makeDetailViewModel: { resolver.resolve() }
             )
         }
     }

@@ -1,26 +1,41 @@
 import CoreAuthInterface
 import DetailInterface
-import SwiftUI
+import UIKit
 
 public struct DetailBuilder: DetailBuildable {
     private let useCase: DetailUseCaseProtocol
     private let coreAuthUseCase: CoreAuthInterface
+    private let makeDetailViewModel: () -> DetailViewModel
 
     public init(
         useCase: DetailUseCaseProtocol,
-        coreAuthUseCase: CoreAuthInterface
+        coreAuthUseCase: CoreAuthInterface,
+        makeDetailViewModel: @escaping () -> DetailViewModel
     ) {
         self.useCase = useCase
         self.coreAuthUseCase = coreAuthUseCase
+        self.makeDetailViewModel = makeDetailViewModel
     }
 
-    public func makeDetailView(router: any DetailRouting) -> AnyView {
-        let viewModel = DetailViewModel(
-            useCase: useCase,
-            coreAuthUseCase: coreAuthUseCase,
-            router: router
-        )
+    @MainActor
+    public func makeDetailViewController(router: DetailRouting) -> UIViewController {
+        let viewModel = makeDetailViewModel()
+        let viewController = DetailViewController(viewModel: viewModel)
 
-        return AnyView(DetailView(viewModel: viewModel))
+        viewModel.onOutput = { [weak router] output in
+            Task { @MainActor [weak router] in
+                switch output {
+                case .onPresentSheet:
+                    router?.route(from: .sheet)
+                }
+            }
+        }
+
+        return viewController
+    }
+
+    @MainActor
+    public func makeDetailSheetViewController() -> UIViewController {
+        DetailSheetViewController()
     }
 }
