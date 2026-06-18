@@ -8,8 +8,8 @@ final class HomeViewModelTests: XCTestCase {
         let viewModel = HomeViewModel()
         var didEmitPushDetail = false
 
-        viewModel.onOutput = { output in
-            if case .onPushDetail = output {
+        viewModel.onRoute = { route in
+            if case .detailRequested = route {
                 didEmitPushDetail = true
             }
         }
@@ -23,8 +23,8 @@ final class HomeViewModelTests: XCTestCase {
         let viewModel = HomeViewModel()
         var receivedAlertCase: HomeAlertCase?
 
-        viewModel.onOutput = { output in
-            if case .showAlert(let alertCase) = output {
+        viewModel.onViewState = { viewState in
+            if case .showAlert(let alertCase) = viewState {
                 receivedAlertCase = alertCase
             }
         }
@@ -38,8 +38,8 @@ final class HomeViewModelTests: XCTestCase {
         let viewModel = HomeViewModel()
         var didEmitDismiss = false
 
-        viewModel.onOutput = { output in
-            if case .showAlert(let alertCase) = output, alertCase == nil {
+        viewModel.onViewState = { viewState in
+            if case .showAlert(let alertCase) = viewState, alertCase == nil {
                 didEmitDismiss = true
             }
         }

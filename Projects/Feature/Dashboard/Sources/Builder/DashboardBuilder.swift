@@ -16,19 +16,16 @@ public struct DashboardBuilder: DashboardBuildable {
     @MainActor
     public func makeDashboardViewController(router: DashboardRouting) -> UIViewController {
         let viewModel = makeHomeViewModel()
-        let viewController = HomeViewController(viewModel: viewModel)
 
-        viewModel.onOutput = { [weak router] output in
+        viewModel.onRoute = { [weak router] route in
             Task { @MainActor [weak router] in
-                switch output {
-                case .onPushDetail:
+                switch route {
+                case .detailRequested:
                     router?.route(from: .detailRequested)
-                case .showAlert(let alertCase):
-                    router?.route(from: .alert(alertCase))
                 }
             }
         }
 
-        return viewController
+        return HomeViewController(viewModel: viewModel)
     }
 }

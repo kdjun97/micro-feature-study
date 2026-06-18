@@ -53,31 +53,6 @@ private final class DashboardDemoRouter: DashboardRouting {
             )
             alert.addAction(UIAlertAction(title: "확인", style: .default))
             navigationController?.topViewController?.present(alert, animated: true)
-        case .alert(let alertCase):
-            presentAlert(for: alertCase)
         }
-    }
-
-    private func presentAlert(for alertCase: HomeAlertCase?) {
-        let title: String
-        let message: String
-
-        switch alertCase {
-        case .tip:
-            title = "[꿀팁] 테스트 꿀팁!"
-            message = "어떤게 꿀팁이 될 수 있을지 잘 모르겠지만 일단은 적어봄."
-        case .stopEditing:
-            title = "편집을 중단할까요?"
-            message = "편집을 중단하시면 지금까지 수정한 내용이 모두 삭제됩니다."
-        case .none:
-            return
-        }
-
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "닫기", style: .cancel))
-        if alertCase == .stopEditing {
-            alert.addAction(UIAlertAction(title: "확인", style: .default))
-        }
-        navigationController?.topViewController?.present(alert, animated: true)
     }
 }

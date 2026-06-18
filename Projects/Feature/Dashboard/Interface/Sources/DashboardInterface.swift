@@ -1,13 +1,7 @@
 import UIKit
 
-public enum HomeAlertCase: Equatable {
-    case tip
-    case stopEditing
-}
-
 public enum DashboardRoute: Equatable {
     case detailRequested
-    case alert(HomeAlertCase?)
 }
 
 @MainActor
