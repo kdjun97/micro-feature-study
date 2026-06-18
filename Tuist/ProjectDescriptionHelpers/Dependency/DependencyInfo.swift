@@ -57,9 +57,7 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
             .external(.Swinject)
         ],
         .Root: [
-            .module(.Main),
             .microFeature(.SignIn),
-            .microFeature(.Dashboard)
         ],
         .Main: [
             .microFeature(.Dashboard),
