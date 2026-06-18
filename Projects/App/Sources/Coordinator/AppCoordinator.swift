@@ -43,7 +43,7 @@ private extension AppCoordinator {
 
         let coordinator = makeMainCoordinator(self)
         mainCoordinator = coordinator
-        setRoot(coordinator.navigationController, animated: animated)
+        setRoot(coordinator.rootViewController, animated: animated)
         coordinator.start()
     }
 
