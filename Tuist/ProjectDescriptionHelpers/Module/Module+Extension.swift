@@ -114,6 +114,7 @@ extension Module {
         case .Domain: .relativeToRoot("Projects/Domain/Domain")
         case .Root: .relativeToRoot("Projects/Feature/Root")
         case .Main: .relativeToRoot("Projects/Feature/Main")
+        case .Base: .relativeToRoot("Projects/Feature/Base")
         default: .relativeToRoot("Projects/\(name)")
         }
     }

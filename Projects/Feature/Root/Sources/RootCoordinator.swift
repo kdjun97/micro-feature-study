@@ -1,3 +1,4 @@
+import Base
 import SignInInterface
 import UIKit
 
@@ -8,7 +9,7 @@ public final class RootCoordinator {
     private let signInBuilder: SignInBuildable
 
     public init(
-        navigationController: UINavigationController = UINavigationController(),
+        navigationController: UINavigationController = SwipeBackNavigationController(),
         signInBuilder: SignInBuildable,
         delegate: RootCoordinatorDelegate? = nil
     ) {

@@ -1,5 +1,6 @@
 import UIKit
 import DesignSystem
+import Base
 
 final class DetailViewController: UIViewController {
     private let viewModel: DetailViewModel
@@ -62,5 +63,15 @@ final class DetailViewController: UIViewController {
     
     @objc func sheetButtonTapped() {
         viewModel.send(.sheetButtonTapped)
+    }
+}
+
+extension DetailViewController: SwipeBackEventReceivable {
+    func swipeBackDidCancel() {
+        print("Did Cancel")
+    }
+    
+    func swipeBackDidComplete() {
+        print("Swipe Completed")
     }
 }

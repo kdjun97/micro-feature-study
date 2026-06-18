@@ -1,3 +1,4 @@
+import Base
 import DashboardInterface
 import DetailInterface
 import UIKit
@@ -13,7 +14,7 @@ public final class MainCoordinator {
     private weak var currentAlert: CustomAlert?
 
     public init(
-        navigationController: UINavigationController = UINavigationController(),
+        navigationController: UINavigationController = SwipeBackNavigationController(),
         dashboardBuilder: DashboardBuildable,
         detailBuilder: DetailBuildable,
         delegate: MainCoordinatorDelegate? = nil
