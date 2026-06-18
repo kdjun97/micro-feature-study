@@ -33,6 +33,7 @@ public enum ExternalModule {
 }
 
 public enum MicroFeatureModule {
+    case MyPage
     case CoreKeyChainStorage
     case CoreAuth
     case Detail
@@ -65,6 +66,7 @@ public enum MicroFeatureModule {
         case .CoreNetwork: "Projects/Core/CoreNetwork"
         case .CoreAuth: "Projects/Core/CoreAuth"
         case .CoreKeyChainStorage: "Projects/Core/CoreKeyChainStorage"
+        case .MyPage: "Projects/Feature/MyPage"
         }
     }
 }

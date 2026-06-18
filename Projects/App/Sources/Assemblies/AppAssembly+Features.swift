@@ -4,6 +4,8 @@ import Dashboard
 import DashboardInterface
 import Detail
 import DetailInterface
+import MyPage
+import MyPageInterface
 import SignIn
 import SignInInterface
 import Swinject
@@ -13,6 +15,7 @@ extension AppAssembly {
         assembleSignInFeature(in: container)
         assembleDashboardFeature(in: container)
         assembleDetailFeature(in: container)
+        assembleMyPageFeature(in: container)
     }
 }
 
@@ -62,6 +65,24 @@ private extension AppAssembly {
             return DashboardBuilder(
                 useCase: useCase,
                 makeHomeViewModel: { resolver.resolve() }
+            )
+        }
+    }
+
+    func assembleMyPageFeature(in container: Container) {
+        container.register(MyPageUseCaseProtocol.self) { _ in
+            MyPageUseCase()
+        }
+
+        container.register(MyPageReactor.self) { (_: Resolver, useCase: MyPageUseCaseProtocol) in
+            MyPageReactor(useCase: useCase)
+        }
+
+        container.register(MyPageBuildable.self) { resolver in
+            let useCase: MyPageUseCaseProtocol = resolver.resolve()
+            return MyPageBuilder(
+                useCase: useCase,
+                makeMyPageReactor: { useCase in resolver.resolve(argument: useCase) }
             )
         }
     }

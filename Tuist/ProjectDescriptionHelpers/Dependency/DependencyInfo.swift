@@ -53,6 +53,8 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
             .module(.MicroFeature(.SignIn)),
             .module(.MicroFeature(.Dashboard)),
             .module(.MicroFeature(.Detail)),
+            .microFeature(.MyPage),
+            .module(.MicroFeature(.MyPage)),
             .external(.Alamofire),
             .external(.Swinject)
         ],
@@ -63,6 +65,7 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
         .Main: [
             .microFeature(.Dashboard),
             .microFeature(.Detail),
+            .microFeature(.MyPage),
             .module(.DesignSystem),
             .module(.Base)
         ],
@@ -107,6 +110,15 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
                 .microFeatureTesting(.CoreAuth)
             ],
             demo: [.microFeatureTesting(.CoreAuth)]
+        ),
+        .MyPage: .init(
+            implementation: [
+                .module(.DesignSystem),
+                .external(.ReactorKit),
+                .external(.RxSwift),
+                .external(.RxCocoa),
+                .external(.RxRelay)
+            ]
         ),
         .CoreAuth: .init(
             interface: [.module(.Domain)],
