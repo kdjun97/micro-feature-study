@@ -1,6 +1,8 @@
 import UIKit
 
 public final class MainTabBarController: UITabBarController {
+    private weak var currentOverlayView: UIView?
+
     public override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .clear
@@ -17,5 +19,21 @@ public final class MainTabBarController: UITabBarController {
             return root.viewController
         }
         setViewControllers(viewControllers, animated: animated)
+    }
+
+    func showOverlay(_ overlayView: UIView) {
+        currentOverlayView?.removeFromSuperview()
+
+        overlayView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(overlayView)
+
+        NSLayoutConstraint.activate([
+            overlayView.topAnchor.constraint(equalTo: view.topAnchor),
+            overlayView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            overlayView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            overlayView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+
+        currentOverlayView = overlayView
     }
 }

@@ -1,3 +1,4 @@
+import DashboardInterface
 import UIKit
 
 public final class MainCoordinator {
@@ -49,6 +50,11 @@ public final class MainCoordinator {
 extension MainCoordinator: DashboardCoordinatorDelegate {
     public func dashboardCoordinatorDidRequestLogout(_ coordinator: DashboardCoordinator) {
         delegate?.mainCoordinatorDidRequestLogout(self)
+    }
+
+    public func dashboardCoordinator(_ coordinator: DashboardCoordinator, didRequestAlert event: DashboardAlertEvent) {
+        let alertView = coordinator.makeAlertView(for: event)
+        tabBarController.showOverlay(alertView)
     }
 }
 

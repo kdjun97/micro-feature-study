@@ -6,6 +6,7 @@ import UIKit
 @MainActor
 public protocol DashboardCoordinatorDelegate: AnyObject {
     func dashboardCoordinatorDidRequestLogout(_ coordinator: DashboardCoordinator)
+    func dashboardCoordinator(_ coordinator: DashboardCoordinator, didRequestAlert event: DashboardAlertEvent)
 }
 
 public final class DashboardCoordinator {
@@ -45,7 +46,16 @@ extension DashboardCoordinator: DashboardRouting {
         switch route {
         case .detailRequested:
             showDetail()
+        case .alertRequested(let event):
+            delegate?.dashboardCoordinator(self, didRequestAlert: event)
         }
+    }
+}
+
+extension DashboardCoordinator {
+    @MainActor
+    func makeAlertView(for event: DashboardAlertEvent) -> UIView {
+        dashboardBuilder.makeDashboardAlertView(for: event)
     }
 }
 

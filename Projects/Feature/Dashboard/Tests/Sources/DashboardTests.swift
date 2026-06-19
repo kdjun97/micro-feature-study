@@ -19,33 +19,18 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertTrue(didEmitPushDetail)
     }
 
-    func testAlertButtonTappedEmitsAlertCase() {
+    func testAlertButtonTappedEmitsAlertRequestedRoute() {
         let viewModel = HomeViewModel()
-        var receivedAlertCase: HomeAlertCase?
+        var receivedAlertEvent: DashboardAlertEvent?
 
-        viewModel.onViewState = { viewState in
-            if case .showAlert(let alertCase) = viewState {
-                receivedAlertCase = alertCase
+        viewModel.onRoute = { route in
+            if case .alertRequested(let event) = route {
+                receivedAlertEvent = event
             }
         }
 
         viewModel.send(.alertButtonTapped(.tip))
 
-        XCTAssertEqual(receivedAlertCase, .tip)
-    }
-
-    func testDismissAlertEmitsNilAlert() {
-        let viewModel = HomeViewModel()
-        var didEmitDismiss = false
-
-        viewModel.onViewState = { viewState in
-            if case .showAlert(let alertCase) = viewState, alertCase == nil {
-                didEmitDismiss = true
-            }
-        }
-
-        viewModel.send(.dismissAlert)
-
-        XCTAssertTrue(didEmitDismiss)
+        XCTAssertEqual(receivedAlertEvent, .tip)
     }
 }

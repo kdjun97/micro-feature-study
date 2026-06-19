@@ -1,4 +1,5 @@
 import DashboardInterface
+import DesignSystem
 import UIKit
 
 public struct DashboardBuilder: DashboardBuildable {
@@ -22,10 +23,23 @@ public struct DashboardBuilder: DashboardBuildable {
                 switch route {
                 case .detailRequested:
                     router?.route(from: .detailRequested)
+                case .alertRequested(let event):
+                    router?.route(from: .alertRequested(event))
                 }
             }
         }
 
         return HomeViewController(viewModel: viewModel)
+    }
+
+    @MainActor
+    public func makeDashboardAlertView(for event: DashboardAlertEvent) -> UIView {
+        CustomAlert(
+            title: event.title,
+            contents: event.contents,
+            primaryButtonTitle: event.primaryButtonTitle,
+            secondaryButtonTitle: event.secondaryButtonTitle,
+            isDismissable: event.isDismissable
+        )
     }
 }

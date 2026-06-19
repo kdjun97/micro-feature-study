@@ -1,6 +1,7 @@
+import DashboardInterface
+
 public final class HomeViewModel {
     var onRoute: ((HomeRoute) -> Void)?
-    var onViewState: ((HomeViewState) -> Void)?
     
     deinit {
         print("❎ HomeViewModel deinit!")
@@ -12,16 +13,12 @@ public final class HomeViewModel {
 
     enum HomeAction {
         case buttonTapped
-        case dismissAlert
-        case alertButtonTapped(HomeAlertCase)
+        case alertButtonTapped(DashboardAlertEvent)
     }
     
     enum HomeRoute {
         case detailRequested
-    }
-
-    enum HomeViewState {
-        case showAlert(HomeAlertCase?)
+        case alertRequested(DashboardAlertEvent)
     }
     
     func send(_ action: HomeAction) {
@@ -29,14 +26,7 @@ public final class HomeViewModel {
         case .buttonTapped:
             onRoute?(.detailRequested)
         case .alertButtonTapped(let alertCase):
-            onViewState?(.showAlert(alertCase))
-        case .dismissAlert:
-            onViewState?(.showAlert(nil))
+            onRoute?(.alertRequested(alertCase))
         }
     }
-}
-
-enum HomeAlertCase: Equatable {
-    case tip
-    case stopEditing
 }

@@ -4,7 +4,6 @@ import SnapKit
 
 final class HomeViewController: UIViewController {
     private let viewModel: HomeViewModel
-    private weak var currentAlert: CustomAlert?
     
     init(viewModel: HomeViewModel) {
         self.viewModel = viewModel
@@ -59,7 +58,6 @@ final class HomeViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .cyan
         setupLayout()
-        bind()
         setAction()
     }
     
@@ -98,17 +96,6 @@ final class HomeViewController: UIViewController {
 }
 
 private extension HomeViewController {
-    func bind() {
-        viewModel.onViewState = { [weak self] viewState in
-            Task { @MainActor [weak self] in
-                switch viewState {
-                case .showAlert(let alertCase):
-                    self?.renderAlert(alertCase)
-                }
-            }
-        }
-    }
-
     func setAction() {
         detailButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         tipAlertButton.addTarget(self, action: #selector(tipAlertButtonTapped), for: .touchUpInside)
@@ -125,67 +112,5 @@ private extension HomeViewController {
     
     @objc func stopEditingAlertButtonTapped() {
         viewModel.send(.alertButtonTapped(.stopEditing))
-    }
-}
-
-extension HomeViewController {
-    func renderAlert(_ alertCase: HomeAlertCase?) {
-        currentAlert?.removeFromSuperview()
-        guard let alertCase else { return }
-
-        let alert = CustomAlert(
-            title: alertCase.title,
-            contents: alertCase.contents,
-            primaryButtonTitle: alertCase.primaryButtonTitle,
-            secondaryButtonTitle: alertCase.secondaryButtonTitle,
-            isDismissable: alertCase.isDismissable
-        )
-        view.addSubview(alert)
-        alert.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-        }
-        currentAlert = alert
-    }
-}
-
-private extension HomeAlertCase {
-    var title: String {
-        switch self {
-        case .tip:
-            "[꿀팁] 테스트 꿀팁!"
-        case .stopEditing:
-            "편집을 중단할까요?"
-        }
-    }
-
-    var contents: String {
-        switch self {
-        case .tip:
-            "어떤게 꿀팁이 될 수 있을지 잘 모르겠지만 일단은 적어봄."
-        case .stopEditing:
-            "편집을 중단하시면 지금까지 수정한 내용이 모두 삭제됩니다."
-        }
-    }
-
-    var primaryButtonTitle: String {
-        "닫기"
-    }
-
-    var secondaryButtonTitle: String? {
-        switch self {
-        case .tip:
-            nil
-        case .stopEditing:
-            "확인"
-        }
-    }
-
-    var isDismissable: Bool {
-        switch self {
-        case .tip:
-            true
-        case .stopEditing:
-            false
-        }
     }
 }

@@ -20,7 +20,12 @@ final class DashboardDemoAppDelegate: UIResponder, UIApplicationDelegate {
         let navigationController = UINavigationController()
         navigationController.setNavigationBarHidden(true, animated: false)
 
-        let router = DashboardDemoRouter(navigationController: navigationController)
+        let router = DashboardDemoRouter(
+            navigationController: navigationController,
+            makeAlertView: { [builder] event in
+                builder.makeDashboardAlertView(for: event)
+            }
+        )
         let viewController = builder.makeDashboardViewController(router: router)
         navigationController.setViewControllers([viewController], animated: false)
 
@@ -38,9 +43,14 @@ final class DashboardDemoAppDelegate: UIResponder, UIApplicationDelegate {
 @MainActor
 private final class DashboardDemoRouter: DashboardRouting {
     private weak var navigationController: UINavigationController?
+    private let makeAlertView: @MainActor (DashboardAlertEvent) -> UIView
 
-    init(navigationController: UINavigationController) {
+    init(
+        navigationController: UINavigationController,
+        makeAlertView: @escaping @MainActor (DashboardAlertEvent) -> UIView
+    ) {
         self.navigationController = navigationController
+        self.makeAlertView = makeAlertView
     }
 
     func route(from route: DashboardRoute) {
@@ -53,6 +63,19 @@ private final class DashboardDemoRouter: DashboardRouting {
             )
             alert.addAction(UIAlertAction(title: "확인", style: .default))
             navigationController?.topViewController?.present(alert, animated: true)
+        case .alertRequested(let event):
+            guard let view = navigationController?.view else { return }
+
+            let alertView = makeAlertView(event)
+            alertView.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(alertView)
+
+            NSLayoutConstraint.activate([
+                alertView.topAnchor.constraint(equalTo: view.topAnchor),
+                alertView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                alertView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                alertView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            ])
         }
     }
 }
