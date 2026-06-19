@@ -13,14 +13,11 @@ public final class MyPageReactor: Reactor {
 
     public enum Action {
         case logoutButtonTapped
-        case changeNameButtonTapped
         case viewDidLoad
-        case updateCountButtonTapped
         case supportItemTapped(MyPageSupportItem)
     }
 
     public enum Mutation {
-        case setName(String)
         case updateCount(Int)
     }
 
@@ -52,12 +49,8 @@ public final class MyPageReactor: Reactor {
         switch action {
         case .logoutButtonTapped:
             return requestLogout()
-        case .changeNameButtonTapped:
-            return .just(.setName("김시미2222222222222222222"))
         case .viewDidLoad:
             return .just(.updateCount(useCase.emotionRecordCount()))
-        case .updateCountButtonTapped:
-            return .just(.updateCount(currentState.count + 10))
         case .supportItemTapped(let item):
             switch item {
             case .logout:
@@ -71,8 +64,6 @@ public final class MyPageReactor: Reactor {
     public func reduce(state: State, mutation: Mutation) -> State {
         var newState = state
         switch mutation {
-        case .setName(let name):
-            newState.name = name
         case .updateCount(let value):
             newState.count = value
         }

@@ -87,18 +87,6 @@ final class MyPageViewController: UIViewController, View {
         return imageView
     }()
 
-    private let changeNameButton = CustomButton(
-        title: "Change Name",
-        backgroundColor: .black,
-        foregroundColor: .white
-    )
-
-    private let changeCountButton = CustomButton(
-        title: "카운터 증가",
-        backgroundColor: .blue,
-        foregroundColor: .white
-    )
-
     private let supportLabel: UILabel = {
         let label = UILabel()
         label.text = "고객지원"
@@ -170,21 +158,6 @@ extension MyPageViewController {
     }
 
     func bindAction(_ reactor: MyPageReactor) {
-        changeNameButton.rx.tap
-            .map { MyPageReactor.Action.changeNameButtonTapped }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-
-        changeCountButton.rx.tap
-            .map { MyPageReactor.Action.updateCountButtonTapped }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-
-        nameButton.rx.tap
-            .map { MyPageReactor.Action.changeNameButtonTapped }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-
         myPageTableView.rx.modelSelected(SupportCellModel.self)
             .map { MyPageReactor.Action.supportItemTapped($0.item) }
             .bind(to: reactor.action)
@@ -207,22 +180,10 @@ private extension MyPageViewController {
 
     func setupDefaultLayout() {
         view.addSubview(navigationBar)
-        view.addSubview(changeNameButton)
-        view.addSubview(changeCountButton)
 
         navigationBar.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             $0.trailing.leading.equalToSuperview()
-        }
-
-        changeNameButton.snp.makeConstraints {
-            $0.leading.equalToSuperview().inset(20)
-            $0.bottom.equalTo(view.safeAreaLayoutGuide)
-        }
-
-        changeCountButton.snp.makeConstraints {
-            $0.bottom.equalTo(view.safeAreaLayoutGuide)
-            $0.leading.equalTo(changeNameButton.snp.trailing).offset(48)
         }
     }
 
@@ -243,6 +204,7 @@ private extension MyPageViewController {
             $0.leading.equalToSuperview().inset(20)
             $0.trailing.equalTo(characterImage.snp.leading).offset(-12)
         }
+        nameButton.isUserInteractionEnabled = false
 
         userInfoDescriptionLabel.snp.makeConstraints {
             $0.top.equalTo(nameButton.snp.bottom).offset(12)
@@ -275,7 +237,7 @@ private extension MyPageViewController {
         myPageTableView.snp.makeConstraints {
             $0.top.equalTo(supportLabel.snp.bottom).offset(28)
             $0.leading.trailing.equalToSuperview().inset(20)
-            $0.bottom.equalTo(changeNameButton.snp.top)
+            $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
         }
     }
 }
