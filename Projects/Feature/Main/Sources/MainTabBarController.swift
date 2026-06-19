@@ -1,4 +1,5 @@
 import UIKit
+import DesignSystem
 
 public final class MainTabBarController: UITabBarController {
     private weak var currentOverlayView: UIView?
@@ -14,9 +15,20 @@ public final class MainTabBarController: UITabBarController {
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = .white
         appearance.shadowColor = .separator
+        applySelectedColor(to: appearance.stackedLayoutAppearance)
+        applySelectedColor(to: appearance.inlineLayoutAppearance)
+        applySelectedColor(to: appearance.compactInlineLayoutAppearance)
 
         tabBar.standardAppearance = appearance
         tabBar.scrollEdgeAppearance = appearance
+        tabBar.tintColor = .main
+    }
+
+    private func applySelectedColor(to itemAppearance: UITabBarItemAppearance) {
+        itemAppearance.selected.iconColor = .main
+        itemAppearance.selected.titleTextAttributes = [
+            .foregroundColor: UIColor.main
+        ]
     }
 
     deinit {
