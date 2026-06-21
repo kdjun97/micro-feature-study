@@ -1,4 +1,5 @@
 import UIKit
+import SwiftUI
 import DesignSystem
 
 final class ButtonShowcaseViewController: ShowcaseViewController {
@@ -8,12 +9,12 @@ final class ButtonShowcaseViewController: ShowcaseViewController {
         navigationItem.largeTitleDisplayMode = .never
 
         addSection(
-            title: "CustomButton",
-            description: "UIButton.Configuration 기반 DesignSystem 버튼 샘플입니다.",
+            title: "UIKit / SwiftUI",
+            description: "같은 variant와 size 토큰으로 만든 버튼을 플랫폼별 구현으로 비교합니다.",
             arrangedSubviews: ButtonCase.allCases.map { buttonCase in
                 ShowcaseRows.labeledRow(
                     title: buttonCase.title,
-                    valueView: makeButton(for: buttonCase)
+                    valueView: makeComparisonRow(for: buttonCase)
                 )
             }
         )
@@ -22,16 +23,60 @@ final class ButtonShowcaseViewController: ShowcaseViewController {
     private func makeButton(for buttonCase: ButtonCase) -> UIButton {
         let button = CustomButton(
             title: buttonCase.buttonTitle,
-            backgroundColor: buttonCase.backgroundColor,
-            foregroundColor: buttonCase.foregroundColor,
-            edgeInsets: NSDirectionalEdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16)
+            variant: buttonCase.variant,
+            size: buttonCase.size
         )
         button.isEnabled = buttonCase.isEnabled
-        button.alpha = buttonCase.isEnabled ? 1 : 0.45
-        button.layer.cornerRadius = 12
-        button.clipsToBounds = true
-        button.heightAnchor.constraint(equalToConstant: 48).isActive = true
         return button
+    }
+
+    private func makeComparisonRow(for buttonCase: ButtonCase) -> UIView {
+        let stackView = UIStackView(arrangedSubviews: [
+            makePlatformColumn(title: "UIKit", valueView: makeButton(for: buttonCase)),
+            makePlatformColumn(title: "SwiftUI", valueView: makeSwiftUIButton(for: buttonCase))
+        ])
+        stackView.axis = .horizontal
+        stackView.distribution = .fillEqually
+        stackView.spacing = 12
+        return stackView
+    }
+
+    private func makePlatformColumn(title: String, valueView: UIView) -> UIView {
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.font = .systemFont(ofSize: 12, weight: .semibold)
+        titleLabel.textColor = .secondaryLabel
+
+        let stackView = UIStackView(arrangedSubviews: [titleLabel, valueView])
+        stackView.axis = .vertical
+        stackView.spacing = 8
+        return stackView
+    }
+
+    private func makeSwiftUIButton(for buttonCase: ButtonCase) -> UIView {
+        let containerView = UIView()
+        let hostingController = UIHostingController(
+            rootView: CustomSwiftUIButton(
+                title: buttonCase.buttonTitle,
+                variant: buttonCase.variant,
+                size: buttonCase.size,
+                isEnabled: buttonCase.isEnabled,
+                action: {}
+            )
+        )
+        addChild(hostingController)
+        hostingController.view.backgroundColor = .clear
+        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(hostingController.view)
+        hostingController.didMove(toParent: self)
+
+        NSLayoutConstraint.activate([
+            hostingController.view.topAnchor.constraint(equalTo: containerView.topAnchor),
+            hostingController.view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            hostingController.view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            hostingController.view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+        ])
+        return containerView
     }
 }
 
@@ -59,19 +104,19 @@ private enum ButtonCase: CaseIterable {
         }
     }
 
-    var backgroundColor: UIColor {
+    var variant: DesignSystemButtonVariant {
         switch self {
-        case .primary: .main
-        case .secondary: .gray1
-        case .destructive: .systemRed
-        case .disabled: .gray2
+        case .primary: .primary
+        case .secondary: .secondary
+        case .destructive: .destructive
+        case .disabled: .primary
         }
     }
 
-    var foregroundColor: UIColor {
+    var size: DesignSystemButtonSize {
         switch self {
-        case .primary, .destructive: .white
-        case .secondary, .disabled: .uBlack
+        case .secondary: .medium
+        case .primary, .destructive, .disabled: .large
         }
     }
 

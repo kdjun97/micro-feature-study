@@ -26,7 +26,6 @@ final class AlertShowcaseViewController: ShowcaseViewController {
             foregroundColor: .white,
             edgeInsets: NSDirectionalEdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16)
         )
-        button.heightAnchor.constraint(equalToConstant: 48).isActive = true
         button.addAction(UIAction { [weak self] _ in
             self?.presentAlert(for: alertCase)
         }, for: .touchUpInside)
