@@ -1,30 +1,65 @@
-import DetailInterface
-import SwiftUI
+import DashboardInterface
+import UIKit
 
-// MARK: 추후 리팩토링, Main + Root
-@MainActor
-public final class MainCoordinator: ObservableObject {
-    @Published public var path: [MainDestination] = []
-
+public final class MainCoordinator {
+    public let tabBarController: MainTabBarController
+    public var rootViewController: UIViewController { tabBarController }
     public weak var delegate: MainCoordinatorDelegate?
-    private let detailBuilder: DetailBuildable
 
-    public init(detailBuilder: DetailBuildable) {
-        self.detailBuilder = detailBuilder
+    private let makeDashboardCoordinator: (DashboardCoordinatorDelegate) -> DashboardCoordinator
+    private let makeMyPageCoordinator: (MyPageCoordinatorDelegate) -> MyPageCoordinator
+
+    private var dashboardCoordinator: DashboardCoordinator?
+    private var myPageCoordinator: MyPageCoordinator?
+
+    public init(
+        tabBarController: MainTabBarController = MainTabBarController(),
+        makeDashboardCoordinator: @escaping (DashboardCoordinatorDelegate) -> DashboardCoordinator,
+        makeMyPageCoordinator: @escaping (MyPageCoordinatorDelegate) -> MyPageCoordinator,
+        delegate: MainCoordinatorDelegate? = nil
+    ) {
+        self.tabBarController = tabBarController
+        self.makeDashboardCoordinator = makeDashboardCoordinator
+        self.makeMyPageCoordinator = makeMyPageCoordinator
+        self.delegate = delegate
+        print("⭕ MainCoordinator init!")
     }
 
-    public func startDetail() {
-        path.removeAll()
+    deinit {
+        print("❎ MainCoordinator deinit!")
     }
 
-    public func makeRootView() -> AnyView {
-        detailBuilder.makeDetailView(router: self)
+    @MainActor
+    public func start() {
+        let dashboardCoordinator = makeDashboardCoordinator(self)
+        let myPageCoordinator = makeMyPageCoordinator(self)
+
+        self.dashboardCoordinator = dashboardCoordinator
+        self.myPageCoordinator = myPageCoordinator
+
+        dashboardCoordinator.start()
+        myPageCoordinator.start()
+
+        tabBarController.setTabs([
+            MainTabRoot(tab: .dashboard, viewController: dashboardCoordinator.navigationController),
+            MainTabRoot(tab: .myPage, viewController: myPageCoordinator.navigationController)
+        ], animated: false)
+    }
+}
+
+extension MainCoordinator: DashboardCoordinatorDelegate {
+    public func dashboardCoordinatorDidRequestLogout(_ coordinator: DashboardCoordinator) {
+        delegate?.mainCoordinatorDidRequestLogout(self)
     }
 
-    public func makeDestinationView(_ destination: MainDestination) -> AnyView {
-        switch destination {
-        case .detail:
-            detailBuilder.makeDetailView(router: self)
-        }
+    public func dashboardCoordinator(_ coordinator: DashboardCoordinator, didRequestAlert event: DashboardAlertEvent) {
+        let alertView = coordinator.makeAlertView(for: event)
+        tabBarController.showOverlay(alertView)
+    }
+}
+
+extension MainCoordinator: MyPageCoordinatorDelegate {
+    public func myPageCoordinatorDidRequestLogout(_ coordinator: MyPageCoordinator) {
+        delegate?.mainCoordinatorDidRequestLogout(self)
     }
 }

@@ -1,43 +1,33 @@
-import Main
-import Root
-import CoreNetwork
-import CoreNetworkInterface
-import DashboardInterface
-import DetailInterface
-import SignInInterface
+import UIKit
 import Swinject
 
-public final class DIContainer {
-    let container: Container
+final class AppDIContainer {
+    private let assembler: Assembler
 
-    public init(container: Container = Container()) {
-        self.container = container
-        registerKeyChainStorageDependencies()
-        registerCoreNetworkDependencies()
-        registerCoreAuthDependencies()
-        registerSignInDependencies()
-        registerDashboardDependencies()
-        registerDetailDependencies()
+    init() {
+        assembler = Assembler([
+            AppAssembly()
+        ])
+    }
+
+    func makeAppCoordinator(window: UIWindow) -> AppCoordinator {
+        assembler.resolver.resolve(argument: window)
     }
 }
 
-extension DIContainer {
-    @MainActor
-    public func makeRootCoordinator() -> RootCoordinator {
-        guard
-            let signInBuilder = container.resolve(SignInBuildable.self),
-            let dashboardBuilder = container.resolve(DashboardBuildable.self),
-            let detailBuilder = container.resolve(DetailBuildable.self)
-        else {
-            fatalError("App dependencies are not registered.")
+
+extension Resolver {
+    func resolve<T>() -> T {
+        guard let instance = resolve(T.self) else {
+            fatalError("DI Error: cannot resolve \(String(describing: T.self))")
         }
+        return instance
+    }
 
-        let mainCoordinator = MainCoordinator(detailBuilder: detailBuilder)
-
-        return RootCoordinator(
-            signInBuilder: signInBuilder,
-            dashboardBuilder: dashboardBuilder,
-            mainCoordinator: mainCoordinator
-        )
+    func resolve<T, Argument>(argument: Argument) -> T {
+        guard let instance = resolve(T.self, argument: argument) else {
+            fatalError("DI Error: cannot resolve \(String(describing: T.self)) with argument \(String(describing: Argument.self))")
+        }
+        return instance
     }
 }

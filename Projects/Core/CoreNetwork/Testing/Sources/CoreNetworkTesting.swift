@@ -31,7 +31,7 @@ public final class StubCoreNetworkClient: CoreNetworkProtocol {
     }
 }
 
-public actor MockCoreNetworkTokenStore: CoreNetworkTokenStore {
+public actor MockCoreTokenStorage: CoreTokenStorage {
     private var storedAccessToken: String?
     private var storedRefreshToken: String?
 

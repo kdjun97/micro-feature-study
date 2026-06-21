@@ -1,23 +1,32 @@
-import Combine
 import DashboardInterface
 
-@MainActor
-public final class DashboardViewModel: ObservableObject {
-    @Published public private(set) var title: String
-
-    private let useCase: DashboardUseCaseProtocol
-    private weak var router: DashboardRouting?
-
-    public init(
-        useCase: DashboardUseCaseProtocol,
-        router: DashboardRouting
-    ) {
-        self.useCase = useCase
-        self.router = router
-        self.title = useCase.title()
+public final class HomeViewModel {
+    var onRoute: ((HomeRoute) -> Void)?
+    
+    deinit {
+        print("❎ HomeViewModel deinit!")
+    }
+    
+    public init() {
+        print("⭕ HomeViewModel init!")
     }
 
-    public func backButtonTapped() {
-        router?.route(from: .backRequested)
+    enum HomeAction {
+        case buttonTapped
+        case alertButtonTapped(DashboardAlertEvent)
+    }
+    
+    enum HomeRoute {
+        case detailRequested
+        case alertRequested(DashboardAlertEvent)
+    }
+    
+    func send(_ action: HomeAction) {
+        switch action {
+        case .buttonTapped:
+            onRoute?(.detailRequested)
+        case .alertButtonTapped(let alertCase):
+            onRoute?(.alertRequested(alertCase))
+        }
     }
 }

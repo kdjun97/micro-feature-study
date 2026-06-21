@@ -3,30 +3,34 @@ import XCTest
 import DashboardInterface
 import DashboardTesting
 
-@MainActor
-final class DashboardViewModelTests: XCTestCase {
-    func testInitialTitleUsesUseCaseTitle() {
-        let useCase = MockDashboardUseCase()
-        let router = MockDashboardRouter()
+final class HomeViewModelTests: XCTestCase {
+    func testButtonTappedEmitsPushDetail() {
+        let viewModel = HomeViewModel()
+        var didEmitPushDetail = false
 
-        let viewModel = DashboardViewModel(
-            useCase: useCase,
-            router: router
-        )
+        viewModel.onRoute = { route in
+            if case .detailRequested = route {
+                didEmitPushDetail = true
+            }
+        }
 
-        XCTAssertEqual(viewModel.title, "Mock Dashboard")
+        viewModel.send(.buttonTapped)
+
+        XCTAssertTrue(didEmitPushDetail)
     }
 
-    func testBackButtonRoutesToBackRequested() {
-        let useCase = MockDashboardUseCase()
-        let router = MockDashboardRouter()
-        let viewModel = DashboardViewModel(
-            useCase: useCase,
-            router: router
-        )
+    func testAlertButtonTappedEmitsAlertRequestedRoute() {
+        let viewModel = HomeViewModel()
+        var receivedAlertEvent: DashboardAlertEvent?
 
-        viewModel.backButtonTapped()
+        viewModel.onRoute = { route in
+            if case .alertRequested(let event) = route {
+                receivedAlertEvent = event
+            }
+        }
 
-        XCTAssertEqual(router.routes, [.backRequested])
+        viewModel.send(.alertButtonTapped(.tip))
+
+        XCTAssertEqual(receivedAlertEvent, .tip)
     }
 }

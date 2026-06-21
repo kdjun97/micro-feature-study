@@ -53,24 +53,38 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
             .module(.MicroFeature(.SignIn)),
             .module(.MicroFeature(.Dashboard)),
             .module(.MicroFeature(.Detail)),
+            .microFeature(.MyPage),
+            .module(.MicroFeature(.MyPage)),
             .external(.Alamofire),
             .external(.Swinject)
         ],
         .Root: [
-            .module(.Main),
             .microFeature(.SignIn),
-            .microFeature(.Dashboard)
+            .module(.Base)
         ],
         .Main: [
-            .microFeature(.Detail)
-        ]
+            .microFeature(.Dashboard),
+            .microFeature(.Detail),
+            .microFeature(.MyPage),
+            .module(.DesignSystem),
+            .module(.Base)
+        ],
+        .DesignSystem: [
+            .external(.SnapKit)
+        ],
+        .Base: []
     ],
     microFeatureDependencies: [
         .SignIn: .init(
             implementation: [
                 .microFeature(.CoreNetwork),
                 .microFeature(.CoreAuth),
-                .module(.DesignSystem)
+                .module(.DesignSystem),
+                .external(.ReactorKit),
+                .external(.RxSwift),
+                .external(.RxCocoa),
+                .external(.RxRelay),
+                .module(.Base)
             ],
             tests: [
                 .microFeatureTesting(.CoreNetwork),
@@ -80,20 +94,31 @@ public let dependencyInfo: DependencyInfo = DependencyInfo(
         ),
         .Dashboard: .init(
             implementation: [
-                .module(.DesignSystem)
+                .module(.DesignSystem),
+                .module(.Base)
             ]
         ),
         .Detail: .init(
             implementation: [
                 .microFeature(.CoreNetwork),
                 .microFeature(.CoreAuth),
-                .module(.DesignSystem)
+                .module(.DesignSystem),
+                .module(.Base)
             ],
             tests: [
                 .microFeatureTesting(.CoreNetwork),
                 .microFeatureTesting(.CoreAuth)
             ],
             demo: [.microFeatureTesting(.CoreAuth)]
+        ),
+        .MyPage: .init(
+            implementation: [
+                .module(.DesignSystem),
+                .external(.ReactorKit),
+                .external(.RxSwift),
+                .external(.RxCocoa),
+                .external(.RxRelay)
+            ]
         ),
         .CoreAuth: .init(
             interface: [.module(.Domain)],

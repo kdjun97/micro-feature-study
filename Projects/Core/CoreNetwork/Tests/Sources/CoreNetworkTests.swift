@@ -10,7 +10,7 @@ final class DefaultCoreNetworkClientTests: XCTestCase {
     }
 
     func testRequestAddsHeadersTokenAndDecodesResponse() async throws {
-        let tokenStore = MockCoreNetworkTokenStore(accessToken: "access-token")
+        let tokenStore = MockCoreTokenStorage(accessToken: "access-token")
         let client = makeClient(
             tokenStore: tokenStore,
             defaultHeaders: ["X-Client": "CoreNetworkTests"]
@@ -44,7 +44,7 @@ final class DefaultCoreNetworkClientTests: XCTestCase {
     }
 
     func testRequestRefreshesTokenOnceAndRetriesWhenUnauthorized() async throws {
-        let tokenStore = MockCoreNetworkTokenStore(
+        let tokenStore = MockCoreTokenStorage(
             accessToken: "expired-access",
             refreshToken: "refresh-token"
         )
@@ -160,19 +160,14 @@ final class StubCoreNetworkClientTests: XCTestCase {
 }
 
 private func makeClient(
-    tokenStore: CoreNetworkTokenStore? = nil,
+    tokenStore: CoreTokenStorage? = nil,
     refreshTokenEndpoint: CoreNetworkEndpoint? = nil,
     defaultHeaders: [String: String] = [:]
 ) -> CoreNetworkClient {
-    let configuration = URLSessionConfiguration.ephemeral
-    configuration.protocolClasses = [MockURLProtocol.self]
-
     return CoreNetworkClient(
-        baseURL: URL(string: "https://api.example.com")!,
         tokenStore: tokenStore,
         refreshTokenEndpoint: refreshTokenEndpoint,
-        defaultHeaders: defaultHeaders,
-        sessionConfiguration: configuration
+        defaultHeaders: defaultHeaders
     )
 }
 
