@@ -1,5 +1,4 @@
 import DetailInterface
-import SwiftUI
 
 public struct DetailTesting {
     public init() {}

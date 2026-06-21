@@ -1,8 +1,10 @@
-import SwiftUI
+import UIKit
 
 public enum SignInRoute: Equatable {
     case signInSucceeded
     case dashboardRequested
+    case signInDetailRequested
+    case signInDetailBackRequested
 }
 
 @MainActor
@@ -12,7 +14,10 @@ public protocol SignInRouting: AnyObject {
 
 public protocol SignInBuildable {
     @MainActor
-    func makeSignInView(router: SignInRouting) -> AnyView
+    func makeSignInViewController(router: SignInRouting) -> UIViewController
+
+    @MainActor
+    func makeSignInDetailViewController(router: SignInRouting) -> UIViewController
 }
 
 public protocol SignInUseCaseProtocol {

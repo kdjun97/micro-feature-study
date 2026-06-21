@@ -1,41 +1,56 @@
-import DashboardInterface
-import Main
+import Base
 import SignInInterface
-import SwiftUI
+import UIKit
 
-@MainActor
-public final class RootCoordinator: ObservableObject {
-    @Published public var root: RootDestination = .signIn
-    @Published public var signInPath: [SignInDestination] = []
+public final class RootCoordinator {
+    public let navigationController: UINavigationController
+    public weak var delegate: RootCoordinatorDelegate?
 
     private let signInBuilder: SignInBuildable
-    private let dashboardBuilder: DashboardBuildable
-    let mainCoordinator: MainCoordinator
 
     public init(
+        navigationController: UINavigationController = SwipeBackNavigationController(),
         signInBuilder: SignInBuildable,
-        dashboardBuilder: DashboardBuildable,
-        mainCoordinator: MainCoordinator
+        delegate: RootCoordinatorDelegate? = nil
     ) {
+        self.navigationController = navigationController
+        navigationController.setNavigationBarHidden(true, animated: false)
         self.signInBuilder = signInBuilder
-        self.dashboardBuilder = dashboardBuilder
-        self.mainCoordinator = mainCoordinator
-        self.mainCoordinator.delegate = self
+        self.delegate = delegate
     }
 
-    public func makeRootView() -> AnyView {
-        switch root {
-        case .signIn:
-            signInBuilder.makeSignInView(router: self)
-        case .main:
-            AnyView(MainCoordinatorView(coordinator: mainCoordinator))
-        }
+    @MainActor
+    public func start() {
+        showSignIn()
     }
 
-    public func makeSignInDestinationView(_ destination: SignInDestination) -> AnyView {
-        switch destination {
-        case .dashboard:
-            dashboardBuilder.makeDashboardView(router: self)
+    @MainActor
+    private func showSignIn() {
+        let viewController = signInBuilder.makeSignInViewController(router: self)
+        navigationController.setViewControllers([viewController], animated: false)
+    }
+
+    @MainActor
+    private func showSignInDetail() {
+        let viewController = signInBuilder.makeSignInDetailViewController(router: self)
+        navigationController.pushViewController(viewController, animated: true)
+    }
+}
+
+@MainActor
+public protocol RootCoordinatorDelegate: AnyObject {
+    func rootCoordinatorDidFinishSignIn(_ coordinator: RootCoordinator)
+}
+
+extension RootCoordinator: SignInRouting {
+    public func route(from route: SignInRoute) {
+        switch route {
+        case .signInSucceeded, .dashboardRequested:
+            delegate?.rootCoordinatorDidFinishSignIn(self)
+        case .signInDetailRequested:
+            showSignInDetail()
+        case .signInDetailBackRequested:
+            navigationController.popViewController(animated: true)
         }
     }
 }

@@ -1,0 +1,115 @@
+import CoreAuthInterface
+import CoreNetworkInterface
+import Dashboard
+import DashboardInterface
+import Detail
+import DetailInterface
+import MyPage
+import MyPageInterface
+import SignIn
+import SignInInterface
+import Swinject
+
+extension AppAssembly {
+    func assembleFeatures(in container: Container) {
+        assembleSignInFeature(in: container)
+        assembleDashboardFeature(in: container)
+        assembleDetailFeature(in: container)
+        assembleMyPageFeature(in: container)
+    }
+}
+
+private extension AppAssembly {
+    func assembleSignInFeature(in container: Container) {
+        container.register(SignInReactor.self) { _ in
+            SignInReactor()
+        }
+
+        container.register(SignInDetailViewModel.self) { _ in
+            SignInDetailViewModel()
+        }
+
+        container.register(SignInRepositoryProtocol.self) { resolver in
+            let networkClient: CoreNetworkProtocol = resolver.resolve()
+            return SignInRepository(networkClient: networkClient)
+        }
+
+        container.register(SignInUseCaseProtocol.self) { resolver in
+            let repository: SignInRepositoryProtocol = resolver.resolve()
+            return SignInUseCase(repository: repository)
+        }
+
+        container.register(SignInBuildable.self) { resolver in
+            let useCase: SignInUseCaseProtocol = resolver.resolve()
+            let coreAuthUseCase: CoreAuthInterface = resolver.resolve()
+            return SignInBuilder(
+                useCase: useCase,
+                coreAuthUseCase: coreAuthUseCase,
+                makeSignInReactor: { resolver.resolve() },
+                makeSignInDetailViewModel: { resolver.resolve() }
+            )
+        }
+    }
+
+    func assembleDashboardFeature(in container: Container) {
+        container.register(HomeViewModel.self) { _ in
+            HomeViewModel()
+        }
+
+        container.register(DashboardUseCaseProtocol.self) { _ in
+            DashboardUseCase()
+        }
+
+        container.register(DashboardBuildable.self) { resolver in
+            let useCase: DashboardUseCaseProtocol = resolver.resolve()
+            return DashboardBuilder(
+                useCase: useCase,
+                makeHomeViewModel: { resolver.resolve() }
+            )
+        }
+    }
+
+    func assembleMyPageFeature(in container: Container) {
+        container.register(MyPageUseCaseProtocol.self) { _ in
+            MyPageUseCase()
+        }
+
+        container.register(MyPageReactor.self) { (_: Resolver, useCase: MyPageUseCaseProtocol) in
+            MyPageReactor(useCase: useCase)
+        }
+
+        container.register(MyPageBuildable.self) { resolver in
+            let useCase: MyPageUseCaseProtocol = resolver.resolve()
+            return MyPageBuilder(
+                useCase: useCase,
+                makeMyPageReactor: { useCase in resolver.resolve(argument: useCase) }
+            )
+        }
+    }
+
+    func assembleDetailFeature(in container: Container) {
+        container.register(DetailViewModel.self) { _ in
+            DetailViewModel()
+        }
+
+        container.register(DetailRepositoryProtocol.self) { resolver in
+            let networkClient: CoreNetworkProtocol = resolver.resolve()
+            return DetailRepository(networkClient: networkClient)
+        }
+
+        container.register(DetailUseCaseProtocol.self) { resolver in
+            let repository: DetailRepositoryProtocol = resolver.resolve()
+            return DetailUseCase(repository: repository)
+        }
+
+        container.register(DetailBuildable.self) { resolver in
+            let useCase: DetailUseCaseProtocol = resolver.resolve()
+            let coreAuthUseCase: CoreAuthInterface = resolver.resolve()
+            return DetailBuilder(
+                useCase: useCase,
+                coreAuthUseCase: coreAuthUseCase,
+                makeDetailViewModel: { resolver.resolve() }
+            )
+        }
+    }
+}

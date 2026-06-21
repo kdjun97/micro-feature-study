@@ -1,5 +1,4 @@
 import DashboardInterface
-import SwiftUI
 
 public struct DashboardTesting {
     public init() {}

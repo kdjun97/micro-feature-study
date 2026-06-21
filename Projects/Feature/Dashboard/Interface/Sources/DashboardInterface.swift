@@ -1,7 +1,13 @@
-import SwiftUI
+import UIKit
 
 public enum DashboardRoute: Equatable {
-    case backRequested
+    case detailRequested
+    case alertRequested(DashboardAlertEvent)
+}
+
+public enum DashboardAlertEvent: Equatable, Sendable {
+    case tip
+    case stopEditing
 }
 
 @MainActor
@@ -11,7 +17,10 @@ public protocol DashboardRouting: AnyObject {
 
 public protocol DashboardBuildable {
     @MainActor
-    func makeDashboardView(router: DashboardRouting) -> AnyView
+    func makeDashboardViewController(router: DashboardRouting) -> UIViewController
+
+    @MainActor
+    func makeDashboardAlertView(for event: DashboardAlertEvent) -> UIView
 }
 
 public protocol DashboardUseCaseProtocol {
